@@ -109,7 +109,7 @@ export default function FriendsBoard() {
           ✨ 建立神经连接
         </h2>
         <p className="text-xs md:text-base text-slate-600 dark:text-slate-400 font-serif mb-4 md:mb-6">
-          欢迎各位大佬交换友链！请一键复制下方格式，并在底部的 Gitalk 留言板申请：
+          欢迎各位大佬交换友链！请一键复制下方格式，并在底部的评论区申请：
         </p>
 
         {/* 代码展示框 & 一键复制按钮 */}

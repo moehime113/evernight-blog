@@ -144,7 +144,7 @@ export default function AboutClient({
 
           <div className="flex items-center gap-1 bg-white/50 dark:bg-slate-900/50 p-1.5 rounded-2xl shadow-inner border border-white/40 dark:border-white/5">
             <button onClick={() => handleTabChange('intro')} className={`px-6 py-2 rounded-xl text-sm font-black transition-all duration-300 ${activeTab === 'intro' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-500 hover:text-indigo-500'}`}>自我介绍</button>
-            <button onClick={() => handleTabChange('activity')} className={`px-6 py-2 rounded-xl text-sm font-black transition-all duration-300 ${activeTab === 'activity' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-500 hover:text-indigo-500'}`}>研究动态</button>
+            <button onClick={() => handleTabChange('activity')} className={`px-6 py-2 rounded-xl text-sm font-black transition-all duration-300 ${activeTab === 'activity' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-500 hover:text-indigo-500'}`}>最近动态</button>
           </div>
         </div>
 

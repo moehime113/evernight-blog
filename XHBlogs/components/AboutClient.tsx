@@ -154,7 +154,7 @@ export default function AboutClient({
               onClick={() => handleTabChange('activity')}
               className={`flex-1 md:flex-none px-4 md:px-6 py-2 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-black transition-all duration-300 ${activeTab === 'activity' ? 'bg-indigo-500 text-white shadow-md' : 'text-slate-500 hover:text-indigo-500'}`}
             >
-              研究动态
+              最近动态
             </button>
           </div>
         </div>

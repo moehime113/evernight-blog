@@ -11,14 +11,11 @@ export default function PhotoWallClient() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const isTransitioning = searchQuery.toLowerCase() !== activeQuery;
 
   useEffect(() => {
-    setIsTransitioning(true);
-
     const timer = setTimeout(() => {
       setActiveQuery(searchQuery.toLowerCase());
-      setIsTransitioning(false);
     }, 250);
 
     return () => clearTimeout(timer);
@@ -51,7 +48,7 @@ export default function PhotoWallClient() {
               <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6">
                 <div>
                   <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-widest mb-2 transition-colors duration-700">光影画廊</h1>
-                  <p className="text-slate-600 dark:text-slate-400 font-medium tracking-wider transition-colors duration-700">定格时间，封存泰拉与现实的每一次心跳</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium tracking-wider transition-colors duration-700">定格每一个愿意留下来的瞬间</p>
                 </div>
 
                 <div className="relative w-full md:w-80 group">
@@ -137,7 +134,7 @@ export default function PhotoWallClient() {
 
                 {activeQuery && matchedAlbums.length === 0 && matchedPhotos.length === 0 && (
                   <div className="text-center py-20 text-slate-500 font-medium">
-                    在泰拉大陆的任何角落都没找到相关的记忆...
+                    没有找到相关的记忆...
                   </div>
                 )}
               </div>

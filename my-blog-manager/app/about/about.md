@@ -1,27 +1,15 @@
 ---
 title: 关于我
-date: '2026-03-31'
 tags: []
 mood: ''
 cover: https://bu.dusays.com/2026/03/24/69c23dc278c78.jpg
 description: ''
 ---
 
-个人简介
+你好，我是 Evernight。
 
-你好，我是 XingHuiSama。
+这里记录学习、代码与生活的片刻。
 
-专注于**计算化学、人工智能与软件工程**的交叉应用。
+网站正在重新整理，旧文章会逐步迁移。
 
-**🔬 研究与计算方向**
-
-* **图神经网络:** 用于分子性质预测与特征提取。
-* **分子对接:** 用于评估配体与受体蛋白的结合模式与亲和力。
-* **分子动力学模拟 :** 用于探究生物大分子在原子尺度的动态行为与构象变化。
-
-**💻 软件工程能力**
-
-* **后端开发:** 使用 **Spring Boot** 框架构建服务端架构，能够处理复杂的数据逻辑与计算任务调度。
-* **前端开发:** 熟练掌握 **Vue.js** 与 **React** 框架，为复杂科学数据的可视化与交互提供流畅的体验。
-
-**欢迎各位朋友联系交流~**
+本站基于 [XinghuisamaBlogs](https://github.com/heiehiehi/XinghuisamaBlogs) 修改，感谢 XingHuiSama 提供的模板。模板采用 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)，由 Evernight 修改站点信息与内容。

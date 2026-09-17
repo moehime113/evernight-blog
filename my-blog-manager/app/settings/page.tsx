@@ -17,8 +17,6 @@ import DisplaySection from '../../components/settings/DisplaySection';
 import CommentSection from '../../components/settings/CommentSection';
 import DanmakuSection from '../../components/settings/DanmakuSection';
 import FooterSection from '../../components/settings/FooterSection';
-// 👇 🌟 引入刚写的 AI 配置组件
-import AICatSection from '../../components/settings/AICatSection';
 
 function SettingsContent() {
   const { operations, addOperation } = useOperations();
@@ -41,16 +39,9 @@ function SettingsContent() {
     },
     newMusicId: '',
     danmakuList: [...(siteConfig.danmakuList || [])],
-    buildDate: siteConfig.buildDate || "2026-03-23T00:00:00",
+    buildDate: siteConfig.buildDate || "",
     icpConfig: siteConfig.icpConfig || { name: "", link: "" },
     footerBadges: [...(siteConfig.footerBadges || [])],
-    // 👇 🌟 初始化小猫 AI 配置数据
-    geminiConfig: siteConfig.geminiConfig || {
-      modelId: 'gemini-2.5-flash-lite',
-      systemPrompt: '',
-      maxOutputTokens: 150,
-      temperature: 0.85
-    }
   });
 
   const [queryLoading, setQueryLoading] = useState(false);
@@ -74,11 +65,9 @@ function SettingsContent() {
             social: { ...(prev.social || {}), ...(data.data.social || {}) },
             gitalkConfig: { ...(prev.gitalkConfig || {}), ...(data.data.gitalkConfig || {}) },
             danmakuList: data.data.danmakuList ? [...data.data.danmakuList] : prev.danmakuList,
-            buildDate: data.data.buildDate || prev.buildDate,
+            buildDate: data.data.buildDate ?? prev.buildDate,
             icpConfig: data.data.icpConfig || prev.icpConfig,
             footerBadges: data.data.footerBadges ? [...data.data.footerBadges] : prev.footerBadges,
-            // 👇 🌟 合并后端发来的小猫配置
-            geminiConfig: { ...(prev.geminiConfig || {}), ...(data.data.geminiConfig || {}) }
           }));
         } else {
           console.error("❌ 后端返回失败:", data.message);
@@ -184,7 +173,6 @@ function SettingsContent() {
     showToast(`🎉 【${label}】已加入右上角操作队列！`, "success");
   };
 
-  // 👇 🌟 在菜单里增加 AI 猫咪入口
   const menuItems = [
     { id: 'profile', name: '个人名片设置', icon: '👤' },
     { id: 'display', name: '视窗画面设置', icon: '🪟' },
@@ -194,7 +182,6 @@ function SettingsContent() {
     { id: 'footer', name: '首页底部设置', icon: '🧩' },
     { id: 'danmaku', name: '全站弹幕设置', icon: '⚡' },
     { id: 'comment', name: '评论系统配置', icon: '💬' },
-    { id: 'aicat', name: 'AI 煤球配置', icon: '🐾' }, // 👈 新增的小猫设置
     { id: 'repo', name: '项目仓库设置', icon: '🚀' },
   ];
 
@@ -233,10 +220,7 @@ function SettingsContent() {
               {activeTab === 'gallery' && <GallerySection key="gallery" formData={formData} handleUpdate={handleUpdate} pushToQueue={pushToQueue} />}
               {activeTab === 'footer' && <FooterSection key="footer" formData={formData} handleUpdate={handleUpdate} pushToQueue={pushToQueue} />}
               {activeTab === 'danmaku' && <DanmakuSection key="danmaku" formData={formData} handleUpdate={handleUpdate} pushToQueue={pushToQueue} />}
-              {activeTab === 'comment' && <CommentSection key="comment" formData={formData} handleUpdate={handleUpdate} pushToQueue={pushToQueue} />}
-              {/* 👇 🌟 挂载 AI 猫咪面板 */}
-              {activeTab === 'aicat' && <AICatSection key="aicat" formData={formData} handleUpdate={handleUpdate} pushToQueue={pushToQueue} />}
-
+              {activeTab === 'comment' && <CommentSection key="comment" />}
               {activeTab === 'repo' && <RepoSection key="repo" />}
             </AnimatePresence>
           </div>

@@ -1,24 +1,19 @@
 "use client";
-import { useEffect, useState } from 'react';
 import { useTheme } from './ThemeProvider';
 
 interface WildBlade { id: number; height: number; width: number; delay: number; duration: number; opacity: number; left: string; isLeftCurve: boolean; }
 
+const blades: WildBlade[] = Array.from({ length: 150 }, (_, i) => ({
+  id: i, height: 30 + ((i * 37 + 11) % 151) / 151 * 50, width: 1 + ((i * 61 + 23) % 151) / 151 * 2,
+  delay: ((i * 43 + 47) % 151) / 151 * -10, duration: 3 + ((i * 73 + 19) % 151) / 151 * 4,
+  opacity: 0.2 + ((i * 53 + 31) % 151) / 151 * 0.4,
+  left: `${(i / 150) * 100 + (((i * 79 + 41) % 151) / 151 - 0.5) * 0.5}%`,
+  isLeftCurve: ((i * 67 + 59) % 151) / 151 > 0.5
+}));
+
 export default function WindyGrass() {
-  const [blades, setBlades] = useState<WildBlade[]>([]);
   // 订阅日夜状态
   const { isDark } = useTheme();
-
-  useEffect(() => {
-    const generated: WildBlade[] = Array.from({ length: 150 }).map((_, i) => ({
-      id: i, height: 30 + Math.random() * 50, width: 1 + Math.random() * 2,
-      delay: Math.random() * -10, duration: 3 + Math.random() * 4,
-      opacity: 0.2 + Math.random() * 0.4,
-      left: `${(i / 150) * 100 + (Math.random() - 0.5) * 0.5}%`,
-      isLeftCurve: Math.random() > 0.5
-    }));
-    setBlades(generated);
-  }, []);
 
   return (
     <div className="fixed bottom-0 left-0 w-full h-32 pointer-events-none z-10 overflow-hidden transition-colors duration-1000">

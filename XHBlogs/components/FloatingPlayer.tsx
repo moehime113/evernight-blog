@@ -3,19 +3,11 @@
 import { usePathname } from 'next/navigation';
 import { useMusic } from './MusicProvider';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
 
 export default function FloatingPlayer() {
   const pathname = usePathname();
   const { currentSong, isPlaying, togglePlay, nextSong, currentLyric, isLoading } = useMusic();
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  // 这里只拦截还没有初始化的情况，不拦截首页
-  if (!isMounted || isLoading || !currentSong) return null;
+  if (isLoading || !currentSong) return null;
 
   // 【核心修复】：判断是否在首页。在首页时我们让它隐身，但不销毁它！
   const isHidden = pathname === '/';

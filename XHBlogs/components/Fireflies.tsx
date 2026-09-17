@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-
 // 更新萤火虫的数据结构，增加独立的移动动画属性
 interface Firefly {
   id: number;
@@ -15,30 +13,19 @@ interface Firefly {
   floatPath: string;       // 随机分配飞行轨迹
 }
 
+const flies: Firefly[] = Array.from({ length: 50 }, (_, i) => ({
+  id: i,
+  top: `${((i * 37 + 11) % 101) / 101 * 100}%`,
+  left: `${((i * 61 + 23) % 101) / 101 * 100}%`,
+  size: 3 + ((i * 43 + 47) % 101) / 101 * 4,
+  breatheDuration: 3 + ((i * 73 + 19) % 101) / 101 * 5,
+  breatheDelay: ((i * 53 + 31) % 101) / 101 * -10,
+  floatDuration: 15 + ((i * 79 + 41) % 101) / 101 * 20,
+  floatDelay: ((i * 67 + 59) % 101) / 101 * -20,
+  floatPath: `float${i % 4 + 1}`,
+}));
+
 export default function Fireflies() {
-  const [flies, setFlies] = useState<Firefly[]>([]);
-
-  useEffect(() => {
-    const generated: Firefly[] = Array.from({ length: 50 }).map((_, i) => ({
-      id: i,
-      // 初始出生点
-      top: `${Math.random() * 100}%`,
-      left: `${Math.random() * 100}%`,
-      size: 3 + Math.random() * 4,
-
-      // 呼吸闪烁：较快，3 到 8 秒一个来回
-      breatheDuration: 3 + Math.random() * 5,
-      breatheDelay: Math.random() * -10,
-
-      // 飞行移动：极其缓慢，15 到 35 秒一个来回，营造漫游感
-      floatDuration: 15 + Math.random() * 20,
-      floatDelay: Math.random() * -20,
-
-      // 随机分配 4 种不同的飞行轨迹，避免大家往同一个方向飞
-      floatPath: `float${Math.floor(Math.random() * 4) + 1}`,
-    }));
-    setFlies(generated);
-  }, []);
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none z-10 overflow-hidden mix-blend-screen">

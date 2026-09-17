@@ -119,9 +119,9 @@ export default function TimelineClient({ posts: initialPosts, tags }: { posts: a
       </AnimatePresence>
 
       <div className="text-center mb-12 relative z-20">
-        <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">研究终端</h1>
+        <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">归档与探索</h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-2 italic">
-          <Sparkles size={16} className="text-indigo-500" /> 总计 {posts.length} 篇研究记录
+          <Sparkles size={16} className="text-indigo-500" /> 总计 {posts.length} 篇文章
         </p>
       </div>
 
@@ -260,7 +260,7 @@ export default function TimelineClient({ posts: initialPosts, tags }: { posts: a
                     <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 shadow-md mb-4">
                       <Plus size={24} />
                     </div>
-                    <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-500 transition-colors">撰写新研究</span>
+                    <span className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-500 transition-colors">撰写新文章</span>
                   </Link>
                 </motion.div>
 
@@ -346,7 +346,7 @@ export default function TimelineClient({ posts: initialPosts, tags }: { posts: a
                         <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 shadow-md relative z-10">
                             <Plus size={24} />
                         </div>
-                        <span className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-500 transition-colors relative z-10">撰写新研究...</span>
+                        <span className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 group-hover:text-indigo-500 transition-colors relative z-10">撰写新文章...</span>
                     </Link>
                  </div>
               </div>

@@ -1,23 +1,16 @@
 // components/WeatherEffect.tsx
 "use client";
 
-import { useEffect, useState } from 'react';
+const particles = Array.from({ length: 30 }, (_, i) => ({
+  id: i,
+  left: `${((i * 37 + 11) % 101) / 101 * 100}%`,
+  duration: `${((i * 61 + 23) % 101) / 101 * 15 + 10}s`,
+  delay: `${((i * 43 + 47) % 101) / 101 * -20}s`,
+  opacity: ((i * 73 + 19) % 101) / 101 * 0.5 + 0.1,
+  size: ((i * 53 + 31) % 101) / 101 * 3 + 2,
+}));
 
 export default function WeatherEffect() {
-  const [particles, setParticles] = useState<{ id: number; left: string; duration: string; delay: string; opacity: number; size: number }[]>([]);
-
-  useEffect(() => {
-    // 随机生成 30 个漂浮的星尘粒子
-    const newParticles = Array.from({ length: 30 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      duration: `${Math.random() * 15 + 10}s`, // 下落时间在 10-25 秒之间
-      delay: `${Math.random() * -20}s`, // 负数延迟，保证一进页面屏幕上就已经有粒子了
-      opacity: Math.random() * 0.5 + 0.1,
-      size: Math.random() * 3 + 2, // 粒子大小 2px 到 5px
-    }));
-    setParticles(newParticles);
-  }, []);
 
   return (
     <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">

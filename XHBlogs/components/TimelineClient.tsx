@@ -81,7 +81,7 @@ export default function TimelineClient({ posts: initialPosts, tags }: { posts: T
       <div className="text-center mb-12 relative z-20">
         <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter mb-4">归档与探索</h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium flex items-center justify-center gap-2 italic">
-          <Sparkles size={16} className="text-indigo-500" /> 总计 {posts.length} 篇研究记录
+          <Sparkles size={16} className="text-indigo-500" /> 总计 {posts.length} 篇文章
         </p>
       </div>
 

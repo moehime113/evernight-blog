@@ -7,7 +7,7 @@
 ## 1. 站点信息
 
 - 站点身份集中在 `XHBlogs/siteConfig.ts`（标题、作者、社交、友链格式）。
-- 头像/背景/封面仍是模板图床链接，替换成自己的图片后更新 `siteConfig.ts`。
+- 头像、背景和封面沿用模板图片；更换图片时更新两端 `siteConfig.ts`。
 - `public/CNAME` 仅对 GitHub Pages 有意义，Vercel 域名在项目 Settings → Domains 管理。
 
 保留项目根目录的 `LICENSE`。模板采用 CC BY-NC 4.0，仅允许非商业用途；在网站页脚加上可见署名，例如：
@@ -26,7 +26,7 @@ npx tsc --noEmit --incremental false
 npm run build
 ```
 
-如果检查失败，先处理报错。模板启用了 `typescript.ignoreBuildErrors`，因此构建成功不代表类型检查通过；不要仅凭构建结果判断可发布。
+如果检查失败，先处理报错。类型检查未被忽略；构建成功仍不能代替 lint 和真实登录流程验证。评论接口检查：`node --test lib/security.test.mjs`（Node.js 22.15+）。
 
 ## 3. 登录并创建预览部署
 
@@ -47,7 +47,29 @@ npx vercel
 
 这种方式直接上传本地前端项目，不需要 `gh`、GitHub 推送或先创建 GitHub 仓库。只安装 Vercel CLI 本身不能代替账号授权。
 
-打开命令返回的预览地址，检查首页、文章、关于页面和手机布局。评论、AI 和天气未配置时不保证可用；不要把 Gitalk client secret 或其他密钥填进 `siteConfig.ts`，该文件会进入浏览器代码。首次上线先不启用这些需要凭据的功能；AI 接口配置付费密钥前还需补充请求校验和限流。
+打开命令返回的预览地址，检查首页、文章、关于页面和手机布局。API 宠物及聊天接口已移除。
+
+### GitHub 登录与评论
+
+在 Vercel 环境变量中配置下列值，并重新部署；本地开发放在未提交的 `XHBlogs/.env.local`，不要把密钥填进 `siteConfig.ts`。
+
+| 变量 | 值 |
+| --- | --- |
+| `AUTH_URL` | `https://evernight.fun`；本地为 `http://localhost:3000` |
+| `AUTH_SECRET` | 至少 32 字符的随机密钥，可运行 `openssl rand -base64 32` 生成 |
+| `AUTH_GITHUB_ID` | 自己的 GitHub OAuth App Client ID |
+| `AUTH_GITHUB_SECRET` | OAuth App Client Secret |
+| `DATABASE_URL` | Neon PostgreSQL 连接串，由 Vercel 集成注入生产环境 |
+
+OAuth App 的 Homepage URL 与 `AUTH_URL` 一致，Authorization callback URL 为 `AUTH_URL` 加 `/api/auth/callback/github`。本地、预览、生产使用各自匹配的 OAuth App，不要混用回调地址。
+
+评论使用 Neon PostgreSQL 免费套餐，不再依赖 GitHub Issues。首次部署前提供 `DATABASE_URL` 并执行 `npm run db:init`；已有表不会被清空。也可执行 `npx vercel env run -e production -- npm run db:init`。开发与预览应连接独立数据库，避免测试数据进入生产环境。
+
+任何 GitHub 用户都可在评论区点击「使用 GitHub 登录」授权后评论（等价于访问 `/login`，导航栏不再单列入口），无需管理员逐页初始化。登录只请求 `read:user`，加密 HttpOnly Cookie 仅保存身份，不保存 GitHub OAuth Token。旧会话需要重新登录；此前已授权的 `public_repo` 不会自动撤销，可在 GitHub 应用授权设置中撤销后重新授权。
+
+评论最多 2000 字符，每个 GitHub 用户 60 秒内仅能提交一条，由数据库原子操作限流。评论公开显示为纯文本；管理或删除评论暂在 Neon 控制台操作。免费套餐有限额，超额会暂停服务，不自动升级付费。
+
+上线验收：完成授权和退出、普通用户发帖、刷新后读取评论，并检查文章与说说评论。`npm test` 默认检查 API 与权限逻辑；可选 PostgreSQL 引擎测试需要 `PGLITE_MODULE`。这些测试不能代替真实 OAuth 回调及线上持久化验收。
 
 ## 4. 发布生产版本
 

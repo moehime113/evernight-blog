@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from 'react';
 import { siteConfig } from '../siteConfig';
 
 interface DanmakuItem {
@@ -11,29 +10,16 @@ interface DanmakuItem {
   delay: number;
 }
 
+const list = siteConfig.danmakuList || [];
+const danmakus: DanmakuItem[] = Array.from({ length: list.length ? 15 : 0 }, (_, i) => ({
+  id: i,
+  text: list[Math.floor(((i * 37 + 11) % 101) / 101 * list.length)],
+  top: ((i * 61 + 23) % 101) / 101 * 80 + 10,
+  duration: ((i * 43 + 47) % 101) / 101 * 20 + 25,
+  delay: ((i * 73 + 19) % 101) / 101 * 20,
+}));
+
 export default function DanmakuBackground() {
-  const [danmakus, setDanmakus] = useState<DanmakuItem[]>([]);
-
-  useEffect(() => {
-    const list = siteConfig.danmakuList || [];
-    if (list.length === 0) return;
-
-    const generatedDanmakus: DanmakuItem[] = [];
-    const count = 15;
-
-    for (let i = 0; i < count; i++) {
-      generatedDanmakus.push({
-        id: i,
-        text: list[Math.floor(Math.random() * list.length)],
-        // 现在容器本身只有 30vh 高，这里的 0-100% 就是在这个 30vh 内部随机
-        // 我们留一点边距 10-90，防止字被切掉一半
-        top: Math.random() * 80 + 10,
-        duration: Math.random() * 20 + 25,
-        delay: Math.random() * 20,
-      });
-    }
-    setDanmakus(generatedDanmakus);
-  }, []);
 
   return (
     // 🌟 终极限制：去掉了 bottom-0，换成了 h-[30vh] 强制锁死容器高度！

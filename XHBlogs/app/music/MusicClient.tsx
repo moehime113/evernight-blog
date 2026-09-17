@@ -23,24 +23,17 @@ export default function MusicClient() {
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [parsedLyrics, setParsedLyrics] = useState<{ time: number; text: string }[]>([]);
-
-  useEffect(() => {
-    if (!currentSong) {
-      setParsedLyrics([]);
-      return;
-    }
+  const parsedLyrics = useMemo(() => {
+    if (!currentSong) return [];
 
     const rawLrc = currentSong.lrc || currentSong.lyric || (typeof currentSong.lyrics === 'string' ? currentSong.lyrics : '');
 
     if (Array.isArray(currentSong.lyrics) && currentSong.lyrics.length > 0) {
-      setParsedLyrics(currentSong.lyrics);
-      return;
+      return currentSong.lyrics;
     }
 
     if (!rawLrc || typeof rawLrc !== 'string') {
-      setParsedLyrics([]);
-      return;
+      return [];
     }
 
     const lines = rawLrc.split('\n');
@@ -62,12 +55,10 @@ export default function MusicClient() {
       }
     }
 
-    if (hasValidTime) {
-      setParsedLyrics(parsed.sort((a, b) => a.time - b.time));
-    } else {
-      setParsedLyrics(lines.map(l => ({ time: -1, text: l.trim() })).filter(l => l.text));
-    }
-  }, [currentSong?.id, currentSong?.lyric, currentSong?.lrc, currentSong?.lyrics]);
+    return hasValidTime
+      ? parsed.sort((a, b) => a.time - b.time)
+      : lines.map(l => ({ time: -1, text: l.trim() })).filter(l => l.text);
+  }, [currentSong]);
 
   const activeLyricIndex = useMemo(() => {
     if (!parsedLyrics.length) return -1;

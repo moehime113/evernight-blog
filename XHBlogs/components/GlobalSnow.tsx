@@ -1,52 +1,26 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
+
+const types = ["❄", "❅", "❆"];
+const snowParticles = Array.from({ length: 40 }, (_, i) => ({
+  char: types[i % types.length],
+  size: ((i * 37 + 11) % 101) / 101 * 15 + 10,
+  left: ((i * 61 + 23) % 101) / 101 * 100,
+  duration: ((i * 43 + 47) % 101) / 101 * 6 + 4,
+  delay: ((i * 73 + 19) % 101) / 101 * 5,
+  opacity: ((i * 53 + 31) % 101) / 101 * 0.5 + 0.3,
+}));
 
 export default function GlobalSnow() {
-  const [isWinter, setIsWinter] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
   useEffect(() => {
-    setMounted(true);
-    // 1. 初始化检查：从 localStorage 读取或检查 body 类名
-    const checkWinter = () => {
-      const isActive = document.body.classList.contains("winter-mode") || localStorage.getItem("winter-mode") === "true";
-      setIsWinter(isActive);
-      if (isActive) document.body.classList.add("winter-mode");
-    };
-
-    checkWinter();
-
-    // 2. 核心魔法：创建一个观察器，监控 body 类名的变化
-    // 这样当 ThemeToggleBlock 修改类名时，这里能实时感应到并开始下雪
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.attributeName === "class") {
-          setIsWinter(document.body.classList.contains("winter-mode"));
-        }
-      });
-    });
-
-    observer.observe(document.body, { attributes: true });
-    return () => observer.disconnect();
+    try {
+      if (localStorage.getItem("winter-mode") === "true") document.body.classList.add("winter-mode");
+    } catch {}
   }, []);
-
-  const snowParticles = useMemo(() => {
-    const types = ["❄", "❅", "❆"];
-    return Array.from({ length: 40 }).map(() => ({
-      char: types[Math.floor(Math.random() * types.length)],
-      size: Math.random() * 15 + 10,
-      left: Math.random() * 100,
-      duration: Math.random() * 6 + 4,
-      delay: Math.random() * 5,
-      opacity: Math.random() * 0.5 + 0.3,
-    }));
-  }, []);
-
-  if (!mounted || !isWinter) return null;
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[190] overflow-hidden">
+    <div className="global-snow fixed inset-0 pointer-events-none z-[190] overflow-hidden">
       {/* 1. 全局冷色调滤镜 */}
       <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-900/10 mix-blend-overlay transition-opacity duration-1000" />
 
@@ -69,6 +43,8 @@ export default function GlobalSnow() {
       ))}
 
       <style dangerouslySetInnerHTML={{ __html: `
+        .global-snow { display: none; }
+        body.winter-mode .global-snow { display: block; }
         @keyframes snowDrop {
           0% { transform: translateY(0) rotate(0deg); }
           100% { transform: translateY(105vh) rotate(360deg); }

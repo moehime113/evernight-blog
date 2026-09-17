@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState } from 'react';
 
 interface Petal {
   id: number;
@@ -9,19 +8,15 @@ interface Petal {
   delay: number;
 }
 
-export default function Sakura() {
-  const [petals, setPetals] = useState<Petal[]>([]);
+const petals: Petal[] = Array.from({ length: 40 }, (_, i) => ({
+  id: i,
+  left: `${((i * 37 + 11) % 101) / 101 * 100}%`,
+  size: 8 + ((i * 61 + 23) % 101) / 101 * 12,
+  duration: 6 + ((i * 43 + 47) % 101) / 101 * 8,
+  delay: ((i * 73 + 19) % 101) / 101 * -15,
+}));
 
-  useEffect(() => {
-    const generated = Array.from({ length: 40 }).map((_, i) => ({
-      id: i,
-      left: `${Math.random() * 100}%`,
-      size: 8 + Math.random() * 12, // 8px 到 20px 大小的花瓣
-      duration: 6 + Math.random() * 8, // 飘落时间 6-14 秒
-      delay: Math.random() * -15, // 随机错开下落时间
-    }));
-    setPetals(generated);
-  }, []);
+export default function Sakura() {
 
   return (
     <div className="fixed inset-0 w-full h-full pointer-events-none z-10 overflow-hidden">

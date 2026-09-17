@@ -58,7 +58,7 @@ def get_site_config():
         root_content = content
 
         # 1. 🌟 预先提取并隔离所有已知的“嵌套对象”，防止内部属性泄露到外层！
-        known_dicts = ['social', 'gitalkConfig', 'geminiConfig', 'icpConfig']
+        known_dicts = ['social', 'gitalkConfig', 'icpConfig']
         for dict_name in known_dicts:
             dict_match = re.search(rf'{dict_name}\s*:\s*\{{([\s\S]+?)\}}', content)
             if dict_match:
@@ -122,7 +122,7 @@ def update_site_config(payload: Dict[str, Any] = Body(...)):
         "bgImages", "defaultPostCover", "photoWallImage", "cloudMusicIds", "social",
         "counts", "chatterTitle", "chatterDescription", "picBedName", "picBedUrl",
         "picBedToken", "danmakuList", "gitalkConfig", "buildDate", "footerBadges",
-        "icpConfig", "geminiConfig",
+        "icpConfig",
         "faviconUrl",
         "navTitle",
         "navSuffix",
