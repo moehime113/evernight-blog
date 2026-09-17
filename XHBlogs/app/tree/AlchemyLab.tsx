@@ -13,6 +13,11 @@ import { siteConfig } from '../../siteConfig';
 // 🌟 引入相册与友链数据以统计徽章 (请确保路径正确，如果报错请调整 ../ 的数量)
 import { albums } from '../../data/albums';
 import { friendsData } from '../../data/friends';
+import type { WorkshopItem, WorkshopProps, WorkshopBadge, WorkshopComment } from './CreativeWorkshopClient';
+
+type Wish = { id: string; content: string; author: string; type: string; date: string };
+type Flask = WorkshopItem & { fillLevel: number; marginLeft: number; marginRight: number };
+type Note = Wish & { color: string; side: string; offsetOut: number; offsetY: number; rotation: number };
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
@@ -22,7 +27,7 @@ function seededRandom(seed: number) {
 // ==========================================
 // 🌟 0. 炼金六边形徽章组件 (HexBadge) 满血特效版
 // ==========================================
-const HexBadge = ({ badge, locked = false }: any) => {
+const HexBadge = ({ badge, locked = false }: { badge: WorkshopBadge; locked?: boolean }) => {
   // 1~10阶 材质与动画特效
   const tierStyles: Record<number, string> = {
     1: 'from-[#5d4037] to-[#8d6e63] border-[#4e342e] text-[#d7ccc8] shadow-[0_0_8px_#5d403744]',
@@ -65,7 +70,7 @@ const HexBadge = ({ badge, locked = false }: any) => {
 // ==========================================
 // 🌟 1. 魔法信息卡片组件
 // ==========================================
-const MagicTooltip = ({ title, type, content, author, color }: any) => (
+const MagicTooltip = ({ title, type, content, author, color }: { title?: string; type: string; content?: string; author?: string; color: string }) => (
   <motion.div
     initial={{ opacity: 0, y: -10, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -5, scale: 0.9 }}
     className="absolute top-[120%] left-1/2 -translate-x-1/2 min-w-[200px] max-w-[280px] w-max z-[100] pointer-events-none"
@@ -104,7 +109,7 @@ const MagicTooltip = ({ title, type, content, author, color }: any) => (
 // ==========================================
 // 🌟 2. 交互式玻璃药水瓶
 // ==========================================
-const LiquidFlask = ({ item, router }: { item: any; router: any }) => {
+const LiquidFlask = ({ item, router }: { item: Flask; router: ReturnType<typeof useRouter> }) => {
   const [isHovered, setIsHovered] = useState(false);
   const colorMap: Record<string, string> = { post: '#3b82f6', chatter: '#f59e0b', moment: '#10b981' };
   const color = colorMap[item.type] || '#fff';
@@ -159,7 +164,7 @@ const LiquidFlask = ({ item, router }: { item: any; router: any }) => {
 // ==========================================
 // 🌟 3. 便利贴纸
 // ==========================================
-const StickyNote = ({ note }: { note: any }) => {
+const StickyNote = ({ note }: { note: Note }) => {
   const [isHovered, setIsHovered] = useState(false);
   return (
     <motion.div
@@ -179,11 +184,11 @@ const StickyNote = ({ note }: { note: any }) => {
 // ==========================================
 // 🌟 4. 核心实验室组件 (完全体)
 // ==========================================
-export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: any) {
+export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: WorkshopProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
-  const [realWishes, setRealWishes] = useState<any[]>([]);
+  const [realWishes, setRealWishes] = useState<Wish[]>([]);
 
   // 控制图鉴面板的开关
   const [showCatalog, setShowCatalog] = useState(false);
@@ -195,10 +200,10 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
     if (siteConfig?.enableLevelSystem !== true) return null;
 
     // 统计照片与友链 (纯发徽章，不加经验)
-    const totalPhotos = (albums || []).reduce((acc: number, curr: any) => acc + (curr.photos?.length || 0), 0);
+    const totalPhotos = (albums || []).reduce((acc: number, curr) => acc + (curr.photos?.length || 0), 0);
     const totalFriends = (friendsData || []).length;
 
-    const parseDateStr = (dateVal: any) => {
+    const parseDateStr = (dateVal: string | Date) => {
       try {
         const d = new Date(dateVal);
         if (isNaN(d.getTime())) return null;
@@ -210,7 +215,7 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
     let tp = 0, tc = 0, tm = 0;
     const uniqueDays = new Set();
 
-    const processItem = (item: any, type: string) => {
+    const processItem = (item: WorkshopItem, type: string) => {
       if (item.date) {
         const ds = parseDateStr(item.date);
         if (ds) {
@@ -224,9 +229,9 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
       }
     };
 
-    posts.forEach((i: any) => processItem(i, 'p'));
-    chatters.forEach((i: any) => processItem(i, 'c'));
-    moments.forEach((i: any) => processItem(i, 'm'));
+    posts.forEach((i) => processItem(i, 'p'));
+    chatters.forEach((i) => processItem(i, 'c'));
+    moments.forEach((i) => processItem(i, 'm'));
 
     const postsExp = posts.length * 50;
     const chattersExp = chatters.length * 20;
@@ -258,7 +263,7 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
     // ==========================================
     // 🛡️ 全图鉴生成器 (显式配置，精准控制)
     // ==========================================
-    const allCatalogBadges: any[] = [];
+    const allCatalogBadges: WorkshopBadge[] = [];
     const ownedIds = new Set();
 
     // 1. 等级徽章配置 (1~50级满，10个阶段)
@@ -370,7 +375,7 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
           const commentsRes = await fetch(issues[0].comments_url);
           const comments = await commentsRes.json();
           if (isMounted && Array.isArray(comments)) {
-            setRealWishes(comments.map((c: any) => ({ id: c.id.toString(), content: c.body, author: c.user.login, type: 'wish', date: currentMonthStr + '-01' })));
+            setRealWishes(comments.map((c: WorkshopComment) => ({ id: c.id.toString(), content: c.body, author: c.user.login, type: 'wish', date: currentMonthStr + '-01' })));
             return;
           }
         }
@@ -385,9 +390,9 @@ export default function AlchemyLab({ posts = [], chatters = [], moments = [] }: 
     if (!mounted) return { shelvesData: [], stickyNotes: [], stats: { post: 0, chatter: 0, moment: 0, wish: 0 } };
 
     const isCurrentMonth = (dateStr: string) => dateStr && dateStr.startsWith(currentMonthStr);
-    const currentPosts = posts.filter((i: any) => isCurrentMonth(i.date));
-    const currentChatters = chatters.filter((i: any) => isCurrentMonth(i.date));
-    const currentMoments = moments.filter((i: any) => isCurrentMonth(i.date));
+    const currentPosts = posts.filter((i) => isCurrentMonth(i.date));
+    const currentChatters = chatters.filter((i) => isCurrentMonth(i.date));
+    const currentMoments = moments.filter((i) => isCurrentMonth(i.date));
     const currentFlasks = [...currentPosts, ...currentChatters, ...currentMoments];
 
     const monthStats = { post: currentPosts.length, chatter: currentChatters.length, moment: currentMoments.length, wish: realWishes.length };

@@ -15,7 +15,15 @@ function timeAgo(dateStr: string) {
   return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`;
 }
 
-export default function MomentList({ moments, authorName, avatarUrl }: any) {
+export interface Moment {
+  id: string;
+  date: string;
+  location: string;
+  images: string[];
+  content: string;
+}
+
+export default function MomentList({ moments, authorName, avatarUrl }: { moments: Moment[]; authorName: string; avatarUrl: string }) {
   const [openCommentId, setOpenCommentId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
@@ -90,7 +98,7 @@ export default function MomentList({ moments, authorName, avatarUrl }: any) {
     );
   };
 
-  const renderMomentCard = (moment: any) => (
+  const renderMomentCard = (moment: Moment) => (
     <motion.div
       key={moment.id}
       layout

@@ -10,10 +10,10 @@ function parseLrc(lrcText: string) {
   const lines = lrcText.split(/\r?\n/);
   const result = [];
 
-  for (let line of lines) {
+  for (const line of lines) {
     const matches = [...line.matchAll(/\[(\d{2,}):(\d{2})(?:\.(\d{2,3}))?\]/g)];
     if (matches.length > 0) {
-      let text = line.replace(/\[\d{2,}:\d{2}(?:\.\d{2,3})?\]/g, '').trim();
+      const text = line.replace(/\[\d{2,}:\d{2}(?:\.\d{2,3})?\]/g, '').trim();
 
       // 剔除控制字符
       const cleanText = text.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
@@ -36,10 +36,37 @@ function parseLrc(lrcText: string) {
 // 🌟 1. 扩充 Context 类型，加入 MusicPage 需要的所有属性
 type PlayMode = 'loop' | 'single' | 'random';
 
+export interface Song {
+  id: string | number;
+  title: string;
+  artist: string;
+  cover: string;
+  src: string;
+  lrcUrl?: string | null;
+  lyrics?: { time: number; text: string }[];
+  lrc?: string;
+  lyric?: string;
+  name?: string;
+  author?: string;
+  pic?: string;
+}
+
+type SongResult = {
+  id?: string;
+  name?: string;
+  artist?: string;
+  author?: string;
+  cover?: string;
+  pic?: string;
+  url?: string;
+  lrc?: string;
+  error?: string;
+};
+
 interface MusicContextType {
-  playlist: any[];
+  playlist: Song[];
   currentIndex: number;
-  currentSong: any; // 扩展了 lyrics 属性
+  currentSong: Song | undefined; // 扩展了 lyrics 属性
   isPlaying: boolean;
   progress: number;
   currentTime: number;
@@ -53,7 +80,7 @@ interface MusicContextType {
   togglePlay: () => void;
   nextSong: () => void;
   prevSong: () => void;
-  handleSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSeek: (e: { target: { value: string } }) => void;
   playSong: (index: number) => void;
   setVolume: (value: number) => void;
   toggleMute: () => void;
@@ -63,7 +90,7 @@ interface MusicContextType {
 const MusicContext = createContext<MusicContextType | null>(null);
 
 export function MusicProvider({ children }: { children: ReactNode }) {
-  const [playlist, setPlaylist] = useState<any[]>([]);
+  const [playlist, setPlaylist] = useState<Song[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -85,16 +112,16 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     const fetchMusicData = async () => {
       try {
         const res = await fetch(`/api/music?ids=${siteConfig.cloudMusicIds.join(',')}`);
-        const rawResults = await res.json();
+        const rawResults: SongResult[] = await res.json();
 
         const mergedPlaylist = rawResults
-          .filter((song: any) => song && song.url && !song.error)
-          .map((song: any) => ({
+          .filter((song) => song && song.url && !song.error)
+          .map((song) => ({
             id: song.id || Math.random().toString(),
             title: song.name || '未知歌曲',
             artist: song.artist || song.author || '未知歌手',
             cover: song.cover || song.pic || 'https://bu.dusays.com/2026/03/24/69c24230a5ff8.jpg',
-            src: song.url,
+            src: song.url!,
             lrcUrl: null,
             lyrics: song.lrc ? parseLrc(song.lrc) : []
           }));
@@ -216,7 +243,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSeek = (e: { target: { value: string } }) => {
     const newProgress = Number(e.target.value);
     setProgress(newProgress);
     if (audioRef.current && audioRef.current.duration) {

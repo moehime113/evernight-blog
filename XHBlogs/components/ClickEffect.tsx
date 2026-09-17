@@ -10,7 +10,7 @@ export default function ClickEffect() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let ripples: any[] = [];
+    const ripples: Ripple[] = [];
 
     const resize = () => {
       canvas.width = window.innerWidth;

@@ -11,7 +11,43 @@ import AlchemyLab from './AlchemyLab';
 import DijiangModel from './DijiangModel';
 // import OperatorRecreation from './OperatorRecreation'; // 🌟 先注释掉，以后需要随时可以加回来
 
-export default function CreativeWorkshopClient({ posts = [], chatters = [], moments = [] }: any) {
+export interface WorkshopItem {
+  id: string;
+  slug?: string;
+  title: string;
+  type: string;
+  date: string;
+  cover?: string | null;
+  image?: string;
+  content?: string;
+  description?: string;
+  author?: string;
+}
+
+export interface WorkshopProps {
+  posts?: WorkshopItem[];
+  chatters?: WorkshopItem[];
+  moments?: WorkshopItem[];
+}
+
+export interface WorkshopBadge {
+  id: string;
+  title: string;
+  typeLabel: string;
+  condition: string;
+  icon: typeof Beaker;
+  colorTier: number;
+  group: string;
+}
+
+export interface WorkshopComment {
+  id: number;
+  body: string;
+  user: { login: string };
+  created_at: string;
+}
+
+export default function CreativeWorkshopClient({ posts = [], chatters = [], moments = [] }: WorkshopProps) {
   const [currentMode, setCurrentMode] = useState<'alchemy' | 'model'>('alchemy'); // 🌟 暂时只保留两个状态
 
   // =========================================================

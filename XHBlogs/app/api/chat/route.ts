@@ -61,9 +61,9 @@ export async function POST(req: Request) {
       headers: { 'Content-Type': 'application/json' }
     });
 
-  } catch (error: any) {
-    console.error("🔥 [5/5] 运行时崩溃:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  } catch (error: unknown) {
+    console.error("🔥 [5/5] 运行时崩溃:", (error as { message?: unknown }).message);
+    return new Response(JSON.stringify({ error: (error as { message?: unknown }).message }), { status: 500 });
   }
 }
 

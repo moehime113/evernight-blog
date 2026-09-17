@@ -14,6 +14,16 @@ import { siteConfig } from '../../siteConfig';
 
 import { albums } from '../../data/albums';
 import { friendsData } from '../../data/friends';
+import type { WorkshopItem, WorkshopProps, WorkshopBadge, WorkshopComment } from './CreativeWorkshopClient';
+
+type TacticalRecord = Omit<WorkshopItem, 'id'> & { id?: string };
+type TacticalHUDProps = {
+  records: TacticalRecord[];
+  color: string;
+  categoryName: string;
+  isImageStyle: boolean;
+  router: ReturnType<typeof useRouter>;
+};
 
 function seededRandom(seed: number) {
   const x = Math.sin(seed) * 10000;
@@ -23,7 +33,7 @@ function seededRandom(seed: number) {
 // ==========================================
 // 🌟 0. 终末地/罗德岛 干员信物徽章组件 (OperatorToken)
 // ==========================================
-const OperatorToken = ({ badge, locked = false }: any) => {
+const OperatorToken = ({ badge, locked = false }: { badge: WorkshopBadge; locked?: boolean }) => {
   const tierStyles: Record<number, string> = {
     1: 'bg-[#f4f4f5] border-[#a1a1aa] text-[#52525b] shadow-[0_0_8px_#f4f4f544]',
     2: 'bg-[#dcfce7] border-[#4ade80] text-[#166534] shadow-[0_0_10px_#4ade8066]',
@@ -73,8 +83,8 @@ const formatDisplayDate = (dateStr: string) => {
 // ==========================================
 // 🌟 2. 特效组件
 // ==========================================
-const BlinkingPoints = ({ geometry, color, size, opacity }: any) => {
-  const materialRef = useRef<any>(undefined);
+const BlinkingPoints = ({ geometry, color, size, opacity }: { geometry: THREE.BufferGeometry; color: string; size: number; opacity: number }) => {
+  const materialRef = useRef<THREE.PointsMaterial>(undefined!);
   useMemo(() => {
     if (!geometry.hasAttribute('aPhase')) {
       const count = geometry.attributes.position.count;
@@ -111,13 +121,13 @@ const BlinkingPoints = ({ geometry, color, size, opacity }: any) => {
 // ==========================================
 // 🌟 3. 统一向左弹出的层叠数据卡片
 // ==========================================
-const StackedTacticalHUD = ({ records, color, categoryName, isImageStyle, router }: any) => {
+const StackedTacticalHUD = ({ records, color, categoryName, isImageStyle, router }: TacticalHUDProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const stackRotations = useMemo(() => [-6, 4, -2], []);
 
   if (!records || records.length === 0) return null;
 
-  const handleItemClick = (r: any) => {
+  const handleItemClick = (r: TacticalRecord) => {
     if (r.type === 'post') router.push(`/posts/${r.slug || r.id}`);
     else if (r.type === 'chatter') router.push(`/chatter/${r.slug || r.id}`);
     else if (r.type === 'moment') router.push(`/moments`);
@@ -143,7 +153,7 @@ const StackedTacticalHUD = ({ records, color, categoryName, isImageStyle, router
         <div className="relative px-3 pb-3 mt-2">
           {isExpanded ? (
             <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} className={`flex flex-col gap-3 overflow-y-auto custom-scrollbar pr-2 pb-1 ${isImageStyle ? 'max-h-[480px]' : 'max-h-[350px]'}`}>
-              {records.map((r: any) => (
+              {records.map((r: TacticalRecord) => (
                 isImageStyle ? (
                   <div key={r.id} onClick={() => handleItemClick(r)} className="relative w-full aspect-video shrink-0 overflow-hidden shadow-md group cursor-pointer border border-[#333] bg-[#222] rounded-xl">
                     <img src={r.image} alt={r.title} className="absolute inset-0 w-full h-full object-cover blur-[2px] group-hover:blur-0 transition-all duration-500 scale-110 opacity-70 group-hover:opacity-100" />
@@ -169,7 +179,7 @@ const StackedTacticalHUD = ({ records, color, categoryName, isImageStyle, router
             </motion.div>
           ) : (
             <div className={`relative mt-2 ${isImageStyle ? 'h-[190px]' : 'h-32'}`}>
-              {records.slice(0, 3).map((r: any, i: number) => (
+              {records.slice(0, 3).map((r: TacticalRecord, i: number) => (
                 <motion.div
                   key={r.id}
                   className={`absolute inset-x-0 shadow-xl cursor-pointer bg-[#222] border-l-2 overflow-hidden rounded-xl ${isImageStyle ? 'aspect-video border-y border-r border-[#333]' : 'p-4 flex flex-col h-24 border-y border-r border-[#333]'}`}
@@ -210,7 +220,7 @@ const StackedTacticalHUD = ({ records, color, categoryName, isImageStyle, router
 // ==========================================
 // 🌟 4. 巨型雷达荧光信标
 // ==========================================
-const TacticalPoint = ({ position, color, isActive, records, categoryName, isImageStyle, router }: any) => {
+const TacticalPoint = ({ position, color, isActive, records, categoryName, isImageStyle, router }: TacticalHUDProps & { position: [number, number, number]; isActive: boolean }) => {
   return (
     <group position={position}>
       <Html center zIndexRange={isActive ? [9999, 9000] : [100, 0]}>
@@ -296,7 +306,7 @@ const DijiangParticleModel = () => {
   );
 };
 
-const HologramShip = ({ activeCategory, currentRecords, router }: any) => {
+const HologramShip = ({ activeCategory, currentRecords, router }: { activeCategory: string | null; currentRecords: TacticalRecord[]; router: ReturnType<typeof useRouter> }) => {
   return (
     <Float speed={2} rotationIntensity={0.05} floatIntensity={0.5}>
       {/* 👇 调整这里的 scale 和 position 来控制整体大小和位置 👇 */}
@@ -308,13 +318,13 @@ const HologramShip = ({ activeCategory, currentRecords, router }: any) => {
           <DijiangParticleModel />
 
           <TacticalPoint position={[-1.0, -0.5, 1.5]} color="#0ea5e9" categoryName="PRTS_DB"
-                         isActive={activeCategory === 'post'} records={currentRecords.filter((r:any) => r.type === 'post')} isImageStyle={true} router={router} />
+                         isActive={activeCategory === 'post'} records={currentRecords.filter((r) => r.type === 'post')} isImageStyle={true} router={router} />
           <TacticalPoint position={[-1.5, -2, 1.5]} color="#eab308" categoryName="LOGS"
-                         isActive={activeCategory === 'chatter'} records={currentRecords.filter((r:any) => r.type === 'chatter')} isImageStyle={true} router={router} />
+                         isActive={activeCategory === 'chatter'} records={currentRecords.filter((r) => r.type === 'chatter')} isImageStyle={true} router={router} />
           <TacticalPoint position={[-2.3, 0, 1.5]} color="#10b981" categoryName="BEACON"
-                         isActive={activeCategory === 'moment'} records={currentRecords.filter((r:any) => r.type === 'moment')} isImageStyle={false} router={router} />
+                         isActive={activeCategory === 'moment'} records={currentRecords.filter((r) => r.type === 'moment')} isImageStyle={false} router={router} />
           <TacticalPoint position={[-2.3, -0.5, 1.5]} color="#f1f5f9" categoryName="RECEPTION"
-                         isActive={activeCategory === 'message'} records={currentRecords.filter((r:any) => r.type === 'message')} isImageStyle={false} router={router} />
+                         isActive={activeCategory === 'message'} records={currentRecords.filter((r) => r.type === 'message')} isImageStyle={false} router={router} />
         </group>
       </group>
     </Float>
@@ -324,7 +334,7 @@ const HologramShip = ({ activeCategory, currentRecords, router }: any) => {
 // ==========================================
 // 🌟 6. 核心页面渲染
 // ==========================================
-export default function DijiangModel({ posts = [], chatters = [], moments = [] }: any) {
+export default function DijiangModel({ posts = [], chatters = [], moments = [] }: WorkshopProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [sysTip, setSysTip] = useState<string | null>(null);
@@ -332,16 +342,16 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
 
   useEffect(() => { setMounted(true); }, []);
 
-  const [realWishes, setRealWishes] = useState<any[]>([]);
+  const [realWishes, setRealWishes] = useState<TacticalRecord[]>([]);
 
   // RPG 数据结算
   const rpgStats = useMemo(() => {
     if (siteConfig?.enableLevelSystem !== true) return null;
 
-    const totalPhotos = (albums || []).reduce((acc: number, curr: any) => acc + (curr.photos?.length || 0), 0);
+    const totalPhotos = (albums || []).reduce((acc: number, curr) => acc + (curr.photos?.length || 0), 0);
     const totalFriends = (friendsData || []).length;
 
-    const parseDateStr = (dateVal: any) => {
+    const parseDateStr = (dateVal: string | Date) => {
       try {
         const d = new Date(dateVal);
         if (isNaN(d.getTime())) return null;
@@ -353,7 +363,7 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
     let tp = 0, tc = 0, tm = 0;
     const uniqueDays = new Set();
 
-    const processItem = (item: any, type: string) => {
+    const processItem = (item: WorkshopItem, type: string) => {
       if (item.date) {
         const ds = parseDateStr(item.date);
         if (ds) {
@@ -367,9 +377,9 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
       }
     };
 
-    posts.forEach((i: any) => processItem(i, 'p'));
-    chatters.forEach((i: any) => processItem(i, 'c'));
-    moments.forEach((i: any) => processItem(i, 'm'));
+    posts.forEach((i) => processItem(i, 'p'));
+    chatters.forEach((i) => processItem(i, 'c'));
+    moments.forEach((i) => processItem(i, 'm'));
 
     const postsExp = posts.length * 50;
     const chattersExp = chatters.length * 20;
@@ -398,7 +408,7 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
     }
     const progressPercent = ((remainingExp / expNeededForNextLevel) * 100).toFixed(1);
 
-    const allCatalogBadges: any[] = [];
+    const allCatalogBadges: WorkshopBadge[] = [];
     const ownedIds = new Set();
 
     const levelConfig = [
@@ -505,7 +515,7 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
           const commentsRes = await fetch(issues[0].comments_url);
           const comments = await commentsRes.json();
           if (isMounted && Array.isArray(comments)) {
-            const fetchedWishes = comments.map((c: any) => ({
+            const fetchedWishes = comments.map((c: WorkshopComment) => ({
               id: c.id.toString(), content: c.body, title: c.body, author: c.user.login, type: 'message', date: c.created_at,
             }));
             setRealWishes(fetchedWishes);
@@ -605,7 +615,7 @@ export default function DijiangModel({ posts = [], chatters = [], moments = [] }
 
             <div className="flex items-center gap-6 z-20 md:border-l border-[#333] md:pl-6 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 mt-2 md:mt-0 relative group/tooltip cursor-crosshair">
               <div className="flex flex-col items-center flex-1 md:flex-none">
-                <span className="text-slate-400 text-[9px] font-bold tracking-[0.2em] mb-1">TODAY'S UPLINK</span>
+                <span className="text-slate-400 text-[9px] font-bold tracking-[0.2em] mb-1">TODAY&apos;S UPLINK</span>
                 <span className="text-[#eab308] font-mono text-sm font-black">+{rpgStats.todayExp} EXP</span>
               </div>
               <div className="flex flex-col items-center flex-1 md:flex-none">

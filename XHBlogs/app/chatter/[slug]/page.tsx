@@ -39,7 +39,9 @@ async function getChatterData(slug: string) {
   const fullPath = path.join(process.cwd(), 'chatters', `${slug}.md`);
   const fileContents = fs.readFileSync(fullPath, 'utf8');
 
-  let { data, content } = matter(fileContents);
+  const parsed = matter(fileContents);
+  const { data } = parsed;
+  let { content } = parsed;
 
   // ==========================================
   // 🌟 前台渲染清洗区：终极防吞换行 + 安全保护补丁！（从 Post 完美移植）
@@ -80,7 +82,6 @@ async function getChatterData(slug: string) {
     .use(remarkGfm)
     .use(remarkMath)
     .use(remarkRehype, { allowDangerousHtml: true })
-    // @ts-ignore
     .use(rehypeHighlight, {
       detect: true,
       ignoreMissing: true,

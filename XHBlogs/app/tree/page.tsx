@@ -3,11 +3,11 @@ import path from 'path';
 import matter from 'gray-matter';
 
 // 引入前台客户端组件
-import CreativeWorkshopClient from './CreativeWorkshopClient';
+import CreativeWorkshopClient, { type WorkshopItem } from './CreativeWorkshopClient';
 
 function getLocalItems(directoryName: string, typeName: string) {
   const dirPath = path.join(process.cwd(), directoryName);
-  let items: any[] = [];
+  let items: WorkshopItem[] = [];
   try {
     if (fs.existsSync(dirPath)) {
       const fileNames = fs.readdirSync(dirPath).filter(f => f.endsWith('.md'));

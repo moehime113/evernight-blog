@@ -5,6 +5,7 @@ import Navbar from '../../components/Navbar';
 import PageTransition from '../../components/PageTransition';
 import { siteConfig } from '../../siteConfig';
 import TimelineClient from '../../components/TimelineClient';
+import type { TimelinePost } from '../../components/TimelineNode';
 // 🌟 1. 引入 ToastProvider 喵！
 import { ToastProvider } from '../../components/ToastProvider';
 
@@ -14,8 +15,8 @@ export const metadata = {
 
 export default function Timeline() {
   const postsDirectory = path.join(process.cwd(), 'posts');
-  let posts: any[] = [];
-  let tagCounts: Record<string, number> = {};
+  const posts: TimelinePost[] = [];
+  const tagCounts: Record<string, number> = {};
 
   try {
     if (fs.existsSync(postsDirectory)) {

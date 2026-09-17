@@ -15,7 +15,7 @@ import { albums } from '../data/albums';
 import LyricBar from '../components/LyricBar';
 import { ToastProvider } from '../components/ToastProvider';
 
-import LatestPostsCarousel from '../components/LatestPostsCarousel';
+import LatestPostsCarousel, { type CarouselPost } from '../components/LatestPostsCarousel';
 import LatestChatterCarousel from '../components/LatestChatterCarousel';
 import DanmakuBackground from '../components/DanmakuBackground';
 
@@ -36,7 +36,7 @@ function formatUpdateTime(dateString: string) {
 
 export default function Home() {
   const postsDirectory = path.join(process.cwd(), 'posts');
-  let allPosts: any[] = [];
+  let allPosts: CarouselPost[] = [];
   try {
     if (fs.existsSync(postsDirectory)) {
       const fileNames = fs.readdirSync(postsDirectory).filter(f => f.endsWith('.md'));
@@ -64,7 +64,7 @@ export default function Home() {
   const top5Posts = allPosts.length > 0 ? allPosts.slice(0, 5) : [{ slug: 'none', title: '暂无文章', description: '快去写第一篇吧！', cover: siteConfig.defaultPostCover, date: '', formattedDate: '' }];
 
   const chattersDirectory = path.join(process.cwd(), 'chatters');
-  let allChatters: any[] = [];
+  let allChatters: CarouselPost[] = [];
   try {
     if (fs.existsSync(chattersDirectory)) {
       const chatterFiles = fs.readdirSync(chattersDirectory).filter(f => f.endsWith('.md'));

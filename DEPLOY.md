@@ -1,16 +1,14 @@
 # 部署到 Vercel
 
-源码已克隆在 `evernight-blog/`，旧站文件未修改。当前仍是上游模板，尚未个性化、构建验证或部署。部署只使用 `XHBlogs/`，不要上传本地管理后台 `my-blog-manager/`。
+仓库位于 `~/evernight-blog`（与旧站 `~/moehime113.github.io` 分离）。部署只使用 `XHBlogs/`，不要上传本地管理后台 `my-blog-manager/`。
 
-## 1. 修改站点信息
+当前状态：已部署到 Vercel（项目 `evernight-blog`），域名 `evernight.fun` 已绑定，Git 已关联自动部署。
 
-编辑 `XHBlogs/siteConfig.ts`：
+## 1. 站点信息
 
-- 将 `title`、`authorName`、`navTitle` 和 `bio` 改为自己的信息。
-- 将头像、社交账号和 `friendLinkApplyFormat` 改为自己的；网站链接使用 `https://evernight.fun`。
-- 清空原作者的 `icpConfig.name` 和 `icpConfig.link`，不要冒用原作者的备案信息。
-- 替换 `app/about/about.md` 中的作者简介，检查 `posts/`、`moments/`、`chatters/` 和 `data/` 中的示例内容，不要作为自己的作品发布。
-- `public/CNAME` 是旧的 GitHub Pages 配置，可删除；它不能绑定 Vercel 域名。
+- 站点身份集中在 `XHBlogs/siteConfig.ts`（标题、作者、社交、友链格式）。
+- 头像/背景/封面仍是模板图床链接，替换成自己的图片后更新 `siteConfig.ts`。
+- `public/CNAME` 仅对 GitHub Pages 有意义，Vercel 域名在项目 Settings → Domains 管理。
 
 保留项目根目录的 `LICENSE`。模板采用 CC BY-NC 4.0，仅允许非商业用途；在网站页脚加上可见署名，例如：
 
@@ -21,7 +19,7 @@
 安装 Node.js 22 LTS，然后在终端执行：
 
 ```sh
-cd /home/evernight/moehime113.github.io/evernight-blog/XHBlogs
+cd /home/evernight/evernight-blog/XHBlogs
 npm ci
 npm run lint
 npx tsc --noEmit --incremental false

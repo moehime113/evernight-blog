@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
   // 🚨 核心修改 2：Vercel 不需要强制加斜杠，关掉它能避免很多 API 路径匹配错误
   // trailingSlash: true,
 
+  redirects: async () => [
+    { source: '/posts', destination: '/timeline', permanent: false },
+  ],
+
   // 下面这些可以保留
   images: {
     unoptimized: true,

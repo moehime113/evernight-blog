@@ -3,7 +3,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import Navbar from '../../components/Navbar';
 import PageTransition from '../../components/PageTransition';
-import MomentList from './MomentList';
+import MomentList, { type Moment } from './MomentList';
 import { siteConfig } from '../../siteConfig';
 
 export const metadata = {
@@ -12,7 +12,7 @@ export const metadata = {
 };
 
 export default function MomentsPage() {
-  let allMoments: any[] = [];
+  let allMoments: Moment[] = [];
 
   try {
     // 🌟 终极防漏绝招：同时扫描两个可能的文件夹，把所有的说说都抓出来！
