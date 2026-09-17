@@ -52,7 +52,7 @@ export default function SiteDashboard() {
         {uptimeStr && (
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span>建站至今：<span className="text-indigo-600 dark:text-indigo-400 font-black">{uptimeStr}</span></span>
+            <span>Evernight 已运行：<span className="text-indigo-600 dark:text-indigo-400 font-black">{uptimeStr}</span></span>
           </div>
         )}
 

@@ -1,12 +1,12 @@
 export const siteConfig = {
   title: "Evernight の 宝藏之地",
-  faviconUrl: "https://bu.dusays.com/2026/03/24/69c1e38ac1846.jpg",
+  faviconUrl: "/img/avatar.jpg",
   authorName: "Evernight",
   bio: "记录学习、代码与生活的片刻。",
   navTitle: "Evernight",
   navSuffix: "の",
   navAfter: "宝藏之地",
-  avatarUrl: "https://bu.dusays.com/2026/03/24/69c1e38ac1846.jpg",
+  avatarUrl: "/img/avatar.jpg",
   useGradient: false,
   themeColors: ["#a18cd1", "#fbc2eb", "#a1c4fd", "#c2e9fb"],
   bgImages: ["https://bu.dusays.com/2026/03/24/69c1e38b4c370.jpg", "https://bu.dusays.com/2026/03/24/69c26fe4acdb5.jpg", "https://bu.dusays.com/2026/03/24/69c26fe4d9486.jpg"],
@@ -43,6 +43,6 @@ export const siteConfig = {
     name: "",
     link: "",
   },
-  friendLinkApplyFormat: "名称：Evernightの宝藏之地\n简介：记录学习、代码与生活的片刻。\n链接：https://evernight.fun\n头像：https://bu.dusays.com/2026/03/24/69c1e38ac1846.jpg",
+  friendLinkApplyFormat: "名称：Evernightの宝藏之地\n简介：记录学习、代码与生活的片刻。\n链接：https://evernight.fun\n头像：https://evernight.fun/img/avatar.jpg",
   enableLevelSystem: true,
 };

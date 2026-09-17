@@ -5,25 +5,22 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, MessageSquare, Sparkles, Activity } from 'lucide-react';
 import Comments from './Comments';
 import { siteConfig } from '../siteConfig';
-import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
-type ActivityRecord = {
-  id: string;
-  type: '文章' | '杂谈' | '说说';
-  title: string;
-  date: string;
-  url: string;
-};
+import type { GithubEvent } from '../lib/github-activity';
 
 export default function AboutClient({
   contentHtml,
   coverImage,
-  activities
+  contributions,
+  contributionTotal,
+  events
 }: {
   contentHtml: string,
   coverImage: string,
-  activities: ActivityRecord[]
+  contributions: Record<string, number>,
+  contributionTotal: number,
+  events: GithubEvent[]
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,7 +70,7 @@ export default function AboutClient({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   };
 
-  const { weeks, activityMap } = useMemo(() => {
+  const weeks = useMemo(() => {
     const today = new Date();
     const endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const startDate = new Date(endDate);
@@ -94,31 +91,34 @@ export default function AboutClient({
     }
     if (currentWeek.length > 0) weeksArr.push(currentWeek);
 
-    const map: Record<string, number> = {};
-    activities.forEach(a => {
-      const d = new Date(a.date);
-      if (!isNaN(d.getTime())) {
-        const dateKey = getLocalDateKey(d);
-        map[dateKey] = (map[dateKey] || 0) + 1;
-      }
-    });
-
-    return { weeks: weeksArr, activityMap: map };
-  }, [activities]);
+    return weeksArr;
+  }, []);
 
   const getColorClass = (count: number) => {
     if (count === 0) return 'bg-slate-100 dark:bg-slate-800/50';
     if (count === 1) return 'bg-green-300 dark:bg-green-900/80';
-    if (count === 2) return 'bg-green-400 dark:bg-green-700/80';
-    if (count === 3) return 'bg-green-500 dark:bg-green-600';
+    if (count <= 3) return 'bg-green-400 dark:bg-green-700/80';
+    if (count <= 7) return 'bg-green-500 dark:bg-green-600';
     return 'bg-green-600 dark:bg-green-500';
   };
 
-  const getTypeColor = (type: string) => {
-    switch(type) {
-      case '文章': return 'text-indigo-600 dark:text-indigo-400';
-      case '杂谈': return 'text-purple-600 dark:text-purple-400';
-      case '说说': return 'text-pink-600 dark:text-pink-400';
+  // GitHub 动态类型 -> 中文标签 + 颜色
+  const eventLabel = (kind: string) => {
+    const labels: Record<string, string> = {
+      push: '推送了代码', create: '创建了仓库或分支', star: '收藏了仓库', watch: '收藏了仓库',
+      fork: 'fork 了仓库', pull_request: '提交了 PR', issues: '开了议题', issue_comment: '评论了议题',
+      release: '发布了版本', public: '开源了仓库', member: '加入了仓库', delete: '删除了分支或标签',
+    };
+    return labels[kind] || '有了新动态';
+  };
+
+  const getTypeColor = (kind: string) => {
+    switch (kind) {
+      case 'push': return 'text-indigo-600 dark:text-indigo-400';
+      case 'create': case 'public': case 'release': return 'text-green-600 dark:text-green-400';
+      case 'star': case 'watch': return 'text-amber-600 dark:text-amber-400';
+      case 'fork': case 'member': return 'text-purple-600 dark:text-purple-400';
+      case 'pull_request': case 'issues': case 'issue_comment': return 'text-pink-600 dark:text-pink-400';
       default: return 'text-slate-500 dark:text-slate-400';
     }
   };
@@ -224,7 +224,7 @@ export default function AboutClient({
               <div className="mb-12 p-5 md:p-8 bg-slate-50/50 dark:bg-slate-900/30 rounded-3xl border border-slate-200/50 dark:border-white/5 shadow-inner">
                 <h3 className="text-lg font-black text-slate-800 dark:text-white mb-6 flex items-center gap-2">
                   <Activity size={20} className="text-green-500" />
-                  {activities.length} contributions in the last year
+                  近一年 {contributionTotal} 次 GitHub 贡献
                 </h3>
 
                 <div className="flex gap-2">
@@ -266,11 +266,11 @@ export default function AboutClient({
                           <div key={i} className="flex flex-col gap-[4px]">
                             {week.map((day, j) => {
                               const dateKey = getLocalDateKey(day);
-                              const count = activityMap[dateKey] || 0;
+                              const count = contributions[dateKey] || 0;
                               return (
                                 <div
                                   key={j}
-                                  title={`${dateKey}: ${count} 次更新`}
+                                  title={`${dateKey}：${count} 次贡献`}
                                   className={`w-[11px] h-[11px] md:w-[13px] md:h-[13px] rounded-[3px] transition-colors duration-300 hover:ring-2 hover:ring-indigo-500/50 ${getColorClass(count)}`}
                                 ></div>
                               );
@@ -295,16 +295,17 @@ export default function AboutClient({
               </div>
 
               <div className="relative pl-6 md:pl-8 border-l-2 border-indigo-500/20 dark:border-indigo-400/20 space-y-6 md:space-y-8">
-                {activities.map((act, index) => {
-                  const isMoment = act.type === '说说';
-                  const targetUrl = isMoment ? '/moments' : act.url;
+                {events.map((act) => {
+                  const targetUrl = act.url || siteConfig.social?.github || 'https://github.com';
 
                   return (
-                    <div key={index} className="relative group">
+                    <div key={act.id} className="relative group">
                       <div className="absolute -left-[31px] md:-left-[39px] top-1/2 -translate-y-1/2 w-3 h-3 md:w-4 md:h-4 bg-white dark:bg-slate-800 border-2 border-indigo-500 rounded-full group-hover:scale-125 transition-transform duration-300 z-10"></div>
 
-                      <Link
+                      <a
                         href={targetUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="flex flex-col md:flex-row md:items-center gap-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-4 rounded-2xl border border-white/50 dark:border-white/5 shadow-sm hover:shadow-lg transition-all group-hover:-translate-y-1 cursor-pointer block relative overflow-hidden"
                       >
                         <div className="flex items-center gap-3 w-full md:w-auto">
@@ -313,9 +314,7 @@ export default function AboutClient({
                           <div className="flex flex-col flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="font-black text-slate-800 dark:text-slate-200 text-sm">{siteConfig.authorName}</span>
-                              <span className={`text-xs font-bold ${getTypeColor(act.type)}`}>
-                                {isMoment ? '发布了 说说' : `更新了 ${act.type}`}
-                              </span>
+                              <span className={`text-xs font-bold ${getTypeColor(act.kind)}`}>{eventLabel(act.kind)}</span>
                             </div>
 
                             <div className="text-[10px] md:hidden font-mono text-slate-400 mt-0.5">
@@ -324,31 +323,23 @@ export default function AboutClient({
                           </div>
                         </div>
 
-                        {!isMoment && (
-                          <>
-                            <div className="hidden md:block w-px h-8 bg-slate-300 dark:bg-slate-600 mx-2 shrink-0"></div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm md:text-base font-black text-slate-800 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                《{act.title}》
-                              </div>
-                            </div>
-                          </>
-                        )}
-
-                        {isMoment && (
-                          <div className="flex-1 hidden md:block"></div>
-                        )}
+                        <div className="hidden md:block w-px h-8 bg-slate-300 dark:bg-slate-600 mx-2 shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm md:text-base font-black text-slate-800 dark:text-white truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                            {act.title}
+                          </div>
+                        </div>
 
                         <div className="hidden md:block text-[11px] font-mono text-slate-400 shrink-0 ml-auto bg-slate-100 dark:bg-slate-900/50 px-2 py-1 rounded-md">
                           {formatDateTime(act.date)}
                         </div>
-                      </Link>
+                      </a>
                     </div>
                   );
                 })}
 
-                {activities.length === 0 && (
-                  <div className="text-slate-500 text-sm font-bold">源石数据库中暂无活动记录...</div>
+                {events.length === 0 && (
+                  <div className="text-slate-500 text-sm font-bold">暂时拉不到 GitHub 动态，稍后再来看看～</div>
                 )}
               </div>
 

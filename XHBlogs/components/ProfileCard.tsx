@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { siteConfig } from '../siteConfig';
 import { useToast } from './ToastProvider';
 
-export default function ProfileCard({ postCount, chatterCount, photoCount }: { postCount: number, chatterCount: number, photoCount: number }) {
+export default function ProfileCard({ postCount, chatterCount, photoCount, friendCount, albumCount, musicCount }: { postCount: number, chatterCount: number, photoCount: number, friendCount: number, albumCount: number, musicCount: number }) {
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -12,6 +12,25 @@ export default function ProfileCard({ postCount, chatterCount, photoCount }: { p
     navigator.clipboard.writeText(text);
     showToast(`✨ ${label}已复制到剪贴板: ${text}`, 'success');
   };
+
+  const stats = [
+    { count: postCount, label: '文章', color: 'text-indigo-600 dark:text-indigo-400' },
+    { count: chatterCount, label: '杂谈', color: 'text-purple-600 dark:text-purple-400' },
+    { count: photoCount, label: '照片', color: 'text-pink-600 dark:text-pink-400' },
+    { count: friendCount, label: '友链', color: 'text-sky-600 dark:text-sky-400' },
+    { count: albumCount, label: '相册', color: 'text-teal-600 dark:text-teal-400' },
+    { count: musicCount, label: '音乐', color: 'text-amber-600 dark:text-amber-400' },
+  ];
+
+  // 只渲染填了内容的社交项：siteConfig 里的空值不会占位
+  const socials = [
+    { type: 'github', url: siteConfig.social?.github || '', value: '', label: 'GitHub' },
+    { type: 'gitee', url: siteConfig.social?.gitee || '', value: '', label: 'Gitee' },
+    { type: 'google', url: siteConfig.social?.google || '', value: '', label: 'Google' },
+    { type: 'email', url: '', value: siteConfig.social?.email || '', label: '邮箱' },
+    { type: 'qq', url: '', value: siteConfig.social?.qq || '', label: 'QQ号' },
+    { type: 'wechat', url: '', value: siteConfig.social?.wechat || '', label: '微信号' },
+  ].filter(item => item.url || item.value);
 
   return (
     <div
@@ -39,21 +58,19 @@ export default function ProfileCard({ postCount, chatterCount, photoCount }: { p
       </div>
 
       <div className="flex flex-col md:flex-row items-center md:items-end justify-between mt-6 md:mt-8 gap-5 md:gap-6 relative z-10">
-        <div className="flex gap-2 sm:gap-6 w-full md:w-auto justify-between sm:justify-around md:justify-start px-2 sm:px-0">
-          <StatItem count={postCount} label="文章" color="text-indigo-600 dark:text-indigo-400" />
-          <div className="w-px h-8 md:h-10 bg-slate-300/50 dark:bg-slate-700 hidden md:block"></div>
-          <StatItem count={chatterCount} label="杂谈" color="text-purple-600 dark:text-purple-400" />
-          <div className="w-px h-8 md:h-10 bg-slate-300/50 dark:bg-slate-700 hidden md:block"></div>
-          <StatItem count={photoCount} label="照片" color="text-pink-600 dark:text-pink-400" />
+        <div className="grid grid-cols-3 gap-y-3 gap-x-2 w-full md:w-auto md:flex md:items-center md:gap-4 px-2 sm:px-0">
+          {stats.map(stat => <StatItem key={stat.label} count={stat.count} label={stat.label} color={stat.color} />)}
         </div>
 
         <div className="flex gap-2 md:gap-3 flex-wrap justify-center md:justify-end w-full md:w-auto" onClick={(e) => e.stopPropagation()}>
-          <SocialBtn type="github" url={siteConfig.social?.github} />
-          <SocialBtn type="gitee" url={siteConfig.social?.gitee} />
-          <SocialBtn type="google" url={siteConfig.social?.google} />
-          <SocialBtn type="email" onClick={() => copyToClipboard(siteConfig.social?.email || '', '邮箱')} />
-          <SocialBtn type="qq" onClick={() => copyToClipboard(siteConfig.social?.qq || '', 'QQ号')} />
-          <SocialBtn type="wechat" onClick={() => copyToClipboard(siteConfig.social?.wechat || '', '微信号')} />
+          {socials.map(item => (
+            <SocialBtn
+              key={item.type}
+              type={item.type}
+              url={item.url || undefined}
+              onClick={item.value ? () => copyToClipboard(item.value, item.label) : undefined}
+            />
+          ))}
         </div>
       </div>
     </div>

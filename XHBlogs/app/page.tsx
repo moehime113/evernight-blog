@@ -12,6 +12,7 @@ import ThemeToggleBlock from '../components/ThemeToggleBlock';
 import ProfileCard from '../components/ProfileCard';
 import SiteDashboard from '../components/SiteDashboard';
 import { albums } from '../data/albums';
+import { friendsData } from '../data/friends';
 import LyricBar from '../components/LyricBar';
 import { ToastProvider } from '../components/ToastProvider';
 
@@ -72,7 +73,7 @@ export default function Home() {
         const fullPath = path.join(chattersDirectory, fileName);
         const { data, content } = matter(fs.readFileSync(fullPath, 'utf8'));
         const rawDate = data.date || '1970-01-01';
-        const cover = data.cover || '/img/dusays-69ec78f42c406.jpg';
+        const cover = data.cover || '/img/dusays-69c24230a4efe.jpg';
         return { slug: fileName.replace(/\.md$/, ''), title: data.title || '碎片记录', description: data.description || content.substring(0, 60), cover: cover, date: rawDate, formattedDate: formatUpdateTime(rawDate) };
       }).sort((a, b) => {
         const dateA = new Date(a.date).getTime();
@@ -82,7 +83,7 @@ export default function Home() {
       });
     }
   } catch (e) {}
-  const top5Chatters = allChatters.length > 0 ? allChatters.slice(0, 5) : [{ slug: 'none', title: '暂无记录', description: '记录一段思绪...', cover: '/img/dusays-69ec78f42c406.jpg', date: '', formattedDate: '' }];
+  const top5Chatters = allChatters.length > 0 ? allChatters.slice(0, 5) : [{ slug: 'none', title: '暂无记录', description: '记录一段思绪...', cover: '/img/dusays-69c24230a4efe.jpg', date: '', formattedDate: '' }];
 
   const chatterCount = allChatters.length;
   const realPhotoCount = albums.reduce((total, album) => total + album.photos.length, 0);
@@ -103,7 +104,7 @@ export default function Home() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
                 {/* 手机上占满1列，电脑上占7列 */}
                 <div className="col-span-1 lg:col-span-7 flex flex-col">
-                    <ProfileCard postCount={allPosts.length} chatterCount={chatterCount} photoCount={realPhotoCount}/>
+                    <ProfileCard postCount={allPosts.length} chatterCount={chatterCount} photoCount={realPhotoCount} friendCount={friendsData.length} albumCount={albums.length} musicCount={siteConfig.cloudMusicIds.length}/>
                 </div>
                 {/* 手机上占满1列，电脑上占5列 */}
                 <div className="col-span-1 lg:col-span-5 flex flex-col">

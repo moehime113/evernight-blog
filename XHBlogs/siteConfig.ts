@@ -3,7 +3,7 @@
 export const siteConfig = {
   // 1. 网站标题与博主信息
   title: "Evernight の 宝藏之地",
-  faviconUrl: "/img/dusays-69c1e38ac1846.jpg",
+  faviconUrl: "/img/avatar.jpg",
   authorName: "Evernight",
   bio: "记录学习、代码与生活的片刻。",
 
@@ -15,7 +15,7 @@ export const siteConfig = {
   navAfter: "宝藏之地",
 
   // 2. 头像设置 (支持网络链接，或将图片放入 public 文件夹后使用 "/me.jpg")
-  avatarUrl: "/img/dusays-69c1e38ac1846.jpg",
+  avatarUrl: "/img/avatar.jpg",
 
   // 3. 网站背景设置 (二选一)
   // 如果想用纯图片背景，请在下面 bgImage 写路径，并将 useGradient 设为 false
@@ -66,6 +66,6 @@ export const siteConfig = {
     maxOutputTokens: 150,
     temperature: 0.85,
   },
-  friendLinkApplyFormat: "名称：Evernightの宝藏之地\n简介：今天我也要学习吗\n链接：https://evernight.fun\n头像：https://evernight.fun/img/dusays-69c1e38ac1846.jpg",
+  friendLinkApplyFormat: "名称：Evernightの宝藏之地\n简介：今天我也要学习吗\n链接：https://evernight.fun\n头像：https://evernight.fun/img/avatar.jpg",
   enableLevelSystem: true,
 };
