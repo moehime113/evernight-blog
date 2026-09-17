@@ -27,6 +27,7 @@ const notoSerif = Noto_Serif_SC({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://evernight.fun'),
   title: siteConfig.title,
   description: siteConfig.bio,
   icons: {
@@ -99,6 +100,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
               <div className="relative z-10 flex-1 flex flex-col">
                 {children}
+                <footer className="px-6 py-6 text-center text-xs text-slate-600 dark:text-slate-300">
+                  基于 <a href="https://github.com/heiehiehi/XinghuisamaBlogs" className="underline">XinghuisamaBlogs by XingHuiSama</a>
+                  {' · '}<a href="https://creativecommons.org/licenses/by-nc/4.0/" className="underline">CC BY-NC 4.0</a>
+                  {' · '}Evernight 修改版
+                </footer>
               </div>
 
               <div className="hidden md:block">
