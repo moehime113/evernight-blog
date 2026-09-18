@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { siteConfig } from '../siteConfig';
 import { useToast } from './ToastProvider';
 
-export default function ProfileCard({ postCount, chatterCount, photoCount, friendCount, albumCount, musicCount }: { postCount: number, chatterCount: number, photoCount: number, friendCount: number, albumCount: number, musicCount: number }) {
+export default function ProfileCard({ postCount, momentCount, photoCount, friendCount, albumCount, musicCount }: { postCount: number, momentCount: number, photoCount: number, friendCount: number, albumCount: number, musicCount: number }) {
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -15,7 +15,7 @@ export default function ProfileCard({ postCount, chatterCount, photoCount, frien
 
   const stats = [
     { count: postCount, label: '文章', color: 'text-indigo-600 dark:text-indigo-400' },
-    { count: chatterCount, label: '杂谈', color: 'text-purple-600 dark:text-purple-400' },
+    { count: momentCount, label: '说说', color: 'text-purple-600 dark:text-purple-400' },
     { count: photoCount, label: '照片', color: 'text-pink-600 dark:text-pink-400' },
     { count: friendCount, label: '友链', color: 'text-sky-600 dark:text-sky-400' },
     { count: albumCount, label: '相册', color: 'text-teal-600 dark:text-teal-400' },

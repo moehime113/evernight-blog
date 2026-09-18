@@ -19,8 +19,6 @@ import Navbar from '../../components/Navbar';
 import PageTransition from '../../components/PageTransition';
 import AboutClient from '../../components/AboutClient';
 import { Suspense } from 'react';
-import { siteConfig } from '../../siteConfig';
-import { fetchGithubActivity, loginFromUrl } from '../../lib/github-activity';
 
 export default async function AboutPage() {
   const fullPath = path.join(process.cwd(), 'app', 'about', 'about.md');
@@ -74,9 +72,6 @@ export default async function AboutPage() {
   } catch (e) {
     console.error("读取 about.md 失败", e);
   }
-
-  // 🌟 最近动态直接读 GitHub 公开数据（贡献日历 + 活动流），带 6 小时缓存
-  const github = await fetchGithubActivity(loginFromUrl(siteConfig.social?.github));
 
   return (
     <div className="min-h-screen relative pb-20">
@@ -200,9 +195,6 @@ export default async function AboutPage() {
             <AboutClient
               contentHtml={contentHtml}
               coverImage={coverImage}
-              contributions={github.contributions}
-              contributionTotal={github.total}
-              events={github.events}
             />
           </Suspense>
         </main>

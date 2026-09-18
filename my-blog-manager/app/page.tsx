@@ -16,7 +16,7 @@ import LyricBar from '../components/LyricBar';
 import { ToastProvider } from '../components/ToastProvider';
 
 import LatestPostsCarousel from '../components/LatestPostsCarousel';
-import LatestChatterCarousel from '../components/LatestChatterCarousel';
+import LatestMomentsCarousel, { type CarouselMoment } from '../components/LatestMomentsCarousel';
 import DanmakuBackground from '../components/DanmakuBackground';
 
 function formatUpdateTime(dateString: string) {
@@ -63,28 +63,30 @@ export default function Home() {
   } catch (e) {}
   const top5Posts = allPosts.length > 0 ? allPosts.slice(0, 5) : [{ slug: 'none', title: '暂无文章', description: '快去写第一篇吧！', cover: siteConfig.defaultPostCover, date: '', formattedDate: '' }];
 
-  const chattersDirectory = path.join(process.cwd(), 'chatters');
-  let allChatters: any[] = [];
+  // 说说（moments）：和 /moments 页一样扫两个目录
+  let allMoments: CarouselMoment[] = [];
   try {
-    if (fs.existsSync(chattersDirectory)) {
-      const chatterFiles = fs.readdirSync(chattersDirectory).filter(f => f.endsWith('.md'));
-      allChatters = chatterFiles.map(fileName => {
-        const fullPath = path.join(chattersDirectory, fileName);
-        const { data, content } = matter(fs.readFileSync(fullPath, 'utf8'));
+    for (const dir of [path.join(process.cwd(), 'posts', 'moments'), path.join(process.cwd(), 'moments')]) {
+      if (!fs.existsSync(dir)) continue;
+      for (const fileName of fs.readdirSync(dir).filter(f => f.endsWith('.md'))) {
+        const { data, content } = matter(fs.readFileSync(path.join(dir, fileName), 'utf8'));
         const rawDate = data.date || '1970-01-01';
-        const cover = data.cover || '/img/dusays-69c24230a4efe.jpg';
-        return { slug: fileName.replace(/\.md$/, ''), title: data.title || '碎片记录', description: data.description || content.substring(0, 60), cover: cover, date: rawDate, formattedDate: formatUpdateTime(rawDate) };
-      }).sort((a, b) => {
-        const dateA = new Date(a.date).getTime();
-        const dateB = new Date(b.date).getTime();
-        if (dateB !== dateA) return dateB - dateA;
-        return b.slug.localeCompare(a.slug);
-      });
+        allMoments.push({
+          id: fileName.replace(/\.md$/, ''),
+          date: rawDate,
+          formattedDate: formatUpdateTime(rawDate),
+          content: content.trim(),
+          images: data.images || [],
+          location: data.location || '',
+        });
+      }
     }
+    allMoments = [...new Map(allMoments.map(m => [m.id, m])).values()]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (e) {}
-  const top5Chatters = allChatters.length > 0 ? allChatters.slice(0, 5) : [{ slug: 'none', title: '暂无记录', description: '记录一段思绪...', cover: '/img/dusays-69c24230a4efe.jpg', date: '', formattedDate: '' }];
 
-  const chatterCount = allChatters.length;
+  const top5Moments = allMoments.slice(0, 5);
+  const momentCount = allMoments.length;
   const realPhotoCount = albums.reduce((total, album) => total + album.photos.length, 0);
   const latestAlbum = albums.length > 0 ? albums[0] : { id: '', title: '照片墙', description: '查看摄影', cover: siteConfig.photoWallImage, date: '' };
 
@@ -100,7 +102,7 @@ export default function Home() {
               {/* 第一行：个人信息 + 播放器 */}
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6 w-full items-stretch">
                 <div className="md:col-span-7 flex">
-                    <ProfileCard postCount={allPosts.length} chatterCount={chatterCount} photoCount={realPhotoCount}/>
+                    <ProfileCard postCount={allPosts.length} momentCount={momentCount} photoCount={realPhotoCount}/>
                 </div>
 
                 {/* 🌟 核心修改：去掉乱七八糟的 Link 和层级，直接渲染 CloudPlayer */}
@@ -127,7 +129,7 @@ export default function Home() {
                   </Link>
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 flex-1 min-h-[220px] items-stretch">
                     <div className="md:col-span-8 h-full">
-                      <LatestChatterCarousel chatters={top5Chatters} />
+                      <LatestMomentsCarousel moments={top5Moments} />
                     </div>
                     <div className="md:col-span-4 h-full flex">
                       <ThemeToggleBlock />

@@ -8,7 +8,6 @@ import FloatingPlayer from "../components/FloatingPlayer";
 import { siteConfig } from "../siteConfig";
 import ClickEffect from "../components/ClickEffect";
 import BackgroundSlider from "../components/BackgroundSlider";
-import GlobalToolbox from "../components/GlobalToolbox";
 import SplashScreen from "../components/SplashScreen";
 import DanmakuBackground from '../components/DanmakuBackground';
 
@@ -105,10 +104,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
               <div className="hidden md:block">
                 <FloatingPlayer />
-              </div>
-
-              <div className="hidden md:block">
-                <GlobalToolbox />
               </div>
 
               <div className="md:hidden block">
