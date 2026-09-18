@@ -10,7 +10,7 @@ import type { TimelinePost } from '../../components/TimelineNode';
 import { ToastProvider } from '../../components/ToastProvider';
 
 export const metadata = {
-  title: "归档与探索 | " + siteConfig.title,
+  title: "归档与探索",
 };
 
 export default function Timeline() {

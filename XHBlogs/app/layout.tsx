@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "../components/ThemeProvider";
@@ -17,50 +18,50 @@ import SiteFooter from '../components/SiteFooter';
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
+// Noto Serif SC 是可变字重字体：不锁 400，标题的 700/900 才是真粗体
 const notoSerif = Noto_Serif_SC({
   subsets: ["latin"],
-  weight: ["400"],
   variable: "--font-serif",
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://evernight.fun'),
-  title: siteConfig.title,
+  title: {
+    default: siteConfig.title,
+    template: `%s | ${siteConfig.navTitle || siteConfig.authorName}`,
+  },
   description: siteConfig.bio,
   icons: {
     icon: siteConfig.faviconUrl,
     apple: siteConfig.faviconUrl,
   },
+  openGraph: {
+    type: 'website',
+    siteName: siteConfig.title,
+    title: siteConfig.title,
+    description: siteConfig.bio,
+    url: '/',
+    locale: 'zh_CN',
+    images: [{ url: siteConfig.photoWallImage }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteConfig.title,
+    description: siteConfig.bio,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f8fafc' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="zh-CN" className={`${geistSans.variable} ${geistMono.variable} ${notoSerif.variable} h-full antialiased`} suppressHydrationWarning>
-      <head>
-        <style
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: `
-              #app-mount-root { opacity: 0; visibility: hidden; pointer-events: none; }
-              html.splash-seen #app-mount-root { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }
-            `
-          }}
-        />
-        <script
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                if (sessionStorage.getItem('hasSeenSplash') === 'true') {
-                  document.documentElement.classList.add('splash-seen');
-                }
-              } catch (e) {}
-            `
-          }}
-        />
-      </head>
-
       <body className="w-screen overflow-x-hidden min-h-full flex flex-col relative transition-colors duration-1000 bg-slate-50 dark:bg-slate-950 font-serif">
         <ThemeProvider>
 

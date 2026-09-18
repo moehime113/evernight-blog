@@ -5,15 +5,13 @@
 
 /* 2. 基础环境与性能优化 */
 @layer base {
-  :root {
-    --font-serif: var(--font-serif), "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
-  }
-
   body {
-    font-family: var(--font-serif);
+    /* next/font 的 Noto Serif SC 挂在 --font-serif 上；这里只在后面追加系统衬线兜底 */
+    font-family: var(--font-serif), "Source Han Serif SC", "Noto Serif SC", "Songti SC", "SimSun", serif;
     @apply transition-colors duration-1000 text-slate-900 bg-slate-50;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-kerning: normal;
   }
 
   .dark body {
@@ -23,6 +21,8 @@
   h1, h2, h3, h4 {
     font-weight: 900;
     letter-spacing: -0.02em;
+    /* 多行标题不再出现孤字尾行 */
+    text-wrap: balance;
   }
 
   .dark .prose {
@@ -38,6 +38,33 @@
 
   .group:hover img {
     will-change: transform;
+  }
+
+  /* 选中文本跟随主题色 */
+  ::selection {
+    background: rgba(99, 102, 241, 0.25);
+  }
+  .dark ::selection {
+    background: rgba(129, 140, 248, 0.35);
+  }
+
+  /* 键盘导航可见焦点 */
+  :focus-visible {
+    outline: 2px solid #818cf8;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* 尊重"减少动态效果"偏好：晕影、弹幕、粒子等动画自动降级 */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
 
@@ -95,3 +122,236 @@ input[type=range]::-webkit-slider-thumb {
   scrollbar-width: thin;
   scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
 }
+
+/* ========================================================
+   7. 文章正文排版（.prose）
+   从文章页内联样式迁移而来，并补齐表格 / 分割线 / 行内标记 / 公式滚动
+   ======================================================== */
+.prose h1 { font-size: 1.8rem !important; font-weight: 900 !important; margin-bottom: 1.2rem !important; margin-top: 2rem !important; line-height: 1.3 !important; color: inherit !important; }
+.prose h2 { font-size: 1.5rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; margin-top: 1.5rem !important; color: inherit !important; }
+.prose h3 { font-size: 1.2rem !important; font-weight: 700 !important; margin-bottom: 0.8rem !important; color: inherit !important; }
+.prose p { font-size: 0.95rem !important; line-height: 1.75 !important; color: inherit !important; }
+
+.prose a { color: #6366f1 !important; text-decoration: none !important; font-weight: 600 !important; border-bottom: 1px dashed #6366f1 !important; transition: all 0.3s ease !important; }
+.prose a:hover { color: #4f46e5 !important; border-bottom-style: solid !important; background-color: rgba(99, 102, 241, 0.1) !important; padding: 0 0.2rem !important; border-radius: 0.2rem !important; }
+.dark .prose a { color: #818cf8 !important; border-bottom-color: #818cf8 !important; }
+.dark .prose a:hover { color: #a5b4fc !important; background-color: rgba(129, 140, 248, 0.15) !important; }
+
+.prose ul { list-style-type: disc !important; padding-left: 1.5rem !important; font-size: 0.95rem !important; }
+.prose ol { list-style-type: decimal !important; padding-left: 1.5rem !important; font-size: 0.95rem !important; }
+.prose li { display: list-item !important; margin-bottom: 0.5rem !important; }
+
+.prose ul ul, .prose ol ul { list-style-type: circle !important; margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
+.prose ol ol, .prose ul ol { list-style-type: lower-alpha !important; margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
+
+.prose del { text-decoration-color: inherit !important; opacity: 0.6; }
+
+/* 引用块专属果冻极客风样式 */
+.prose blockquote {
+  border-left: 4px solid #6366f1 !important;
+  background-color: rgba(99, 102, 241, 0.05) !important;
+  padding: 1rem 1.5rem !important;
+  margin: 1.5rem 0 !important;
+  border-radius: 0 1.25rem 1.25rem 0 !important;
+  font-style: italic !important;
+  color: #64748b !important;
+}
+.prose blockquote p {
+  margin: 0 !important;
+  color: inherit !important;
+}
+.dark .prose blockquote {
+  border-left-color: #818cf8 !important;
+  background-color: rgba(129, 140, 248, 0.1) !important;
+  color: #94a3b8 !important;
+}
+
+.prose pre {
+  background-color: #282c34 !important; color: #abb2bf !important;
+  padding: 1rem !important; border-radius: 0.75rem !important;
+  overflow-x: auto !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.3) !important;
+  margin-top: 1rem !important; margin-bottom: 1rem !important;
+}
+
+.prose pre code, .prose p code, .prose li code {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, ui-monospace, monospace !important;
+  font-variant-ligatures: contextual !important;
+}
+.prose pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+  font-size: 0.85em !important;
+}
+
+.prose code::before, .prose code::after { content: none !important; }
+.prose p code, .prose li code { background-color: rgba(99, 102, 241, 0.1) !important; color: #6366f1 !important; padding: 0.1rem 0.3rem !important; border-radius: 0.25rem !important; font-weight: 600 !important; font-size: 0.85em !important; }
+.dark .prose p code, .dark .prose li code { background-color: rgba(99, 102, 241, 0.2) !important; color: #818cf8 !important; }
+.prose img { display: block !important; margin: 1.5rem auto !important; border-radius: 1rem !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; max-width: 100% !important; height: auto !important; cursor: zoom-in !important; }
+
+.prose pre code .hljs-comment, .prose pre code .hljs-quote { color: #5c6370 !important; font-style: italic !important; }
+.prose pre code .hljs-doctag, .prose pre code .hljs-keyword, .prose pre code .hljs-formula { color: #c678dd !important; }
+.prose pre code .hljs-keyword.type_, .prose pre code .hljs-type { color: #c678dd !important; }
+.prose pre code .hljs-section, .prose pre code .hljs-name, .prose pre code .hljs-selector-tag, .prose pre code .hljs-deletion, .prose pre code .hljs-subst { color: #e06c75 !important; }
+.prose pre code .hljs-literal { color: #56b6c2 !important; }
+.prose pre code .hljs-string, .prose pre code .hljs-regexp, .prose pre code .hljs-addition, .prose pre code .hljs-attribute, .prose pre code .hljs-meta-string { color: #98c379 !important; }
+.prose pre code .hljs-built_in, .prose pre code .hljs-class .hljs-title, .prose pre code .hljs-title.class_ { color: #e6c07b !important; }
+.prose pre code .hljs-attr, .prose pre code .hljs-variable, .prose pre code .hljs-template-variable, .prose pre code .hljs-selector-class, .prose pre code .hljs-selector-attr, .prose pre code .hljs-selector-pseudo, .prose pre code .hljs-number { color: #d19a66 !important; }
+.prose pre code .hljs-symbol, .prose pre code .hljs-bullet, .prose pre code .hljs-link, .prose pre code .hljs-meta, .prose pre code .hljs-selector-id, .prose pre code .hljs-title, .prose pre code .hljs-title.function_ { color: #61aeee !important; }
+
+/* ---------- 排版增强：表格 / 分割线 / 标记 / 公式 ---------- */
+
+/* GFM 表格：横向可滚 + 表头主题色 + 斑马纹 */
+.prose table {
+  display: block !important;
+  overflow-x: auto !important;
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1.5rem 0 !important;
+  font-size: 0.92em !important;
+}
+.prose thead th {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+  color: #4338ca !important;
+  font-weight: 800 !important;
+  text-align: left !important;
+  padding: 0.65rem 0.9rem !important;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.4) !important;
+  white-space: nowrap !important;
+}
+.prose td {
+  padding: 0.6rem 0.9rem !important;
+  border-bottom: 1px solid rgba(100, 116, 139, 0.25) !important;
+}
+.prose tbody tr:nth-child(even) {
+  background-color: rgba(99, 102, 241, 0.04) !important;
+}
+.dark .prose thead th {
+  color: #a5b4fc !important;
+  background-color: rgba(129, 140, 248, 0.12) !important;
+  border-bottom-color: rgba(129, 140, 248, 0.4) !important;
+}
+.dark .prose td {
+  border-bottom-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+/* 分割线：两端淡出的主题色光线 */
+.prose hr {
+  border: none !important;
+  height: 1px !important;
+  margin: 2.5rem auto !important;
+  background: linear-gradient(to right, transparent, rgba(99, 102, 241, 0.6), transparent) !important;
+}
+
+/* ==高亮== 标记 */
+.prose mark {
+  background-color: rgba(251, 191, 36, 0.35) !important;
+  color: inherit !important;
+  padding: 0.05em 0.25em !important;
+  border-radius: 0.25rem !important;
+}
+
+/* KaTeX 公式：超宽时横向滚动，不再撑破卡片 */
+.prose .katex-display {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 0.5rem 0 !important;
+}
+
+@media (min-width: 768px) {
+  .prose h1 { font-size: 3rem !important; font-weight: 950 !important; margin-bottom: 2rem !important; margin-top: 3rem !important; line-height: 1.1 !important; }
+  .prose h2 { font-size: 2.2rem !important; margin-bottom: 1.5rem !important; margin-top: 2rem !important; }
+  .prose h3 { font-size: 1.5rem !important; margin-bottom: 1rem !important; }
+  .prose p { font-size: 1.15rem !important; line-height: 1.85 !important; }
+
+  .prose ul, .prose ol { padding-left: 2rem !important; font-size: 1.1rem !important; }
+
+  .prose pre { padding: 1.25rem !important; margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; }
+  .prose pre code { font-size: 0.9em !important; }
+  .prose p code, .prose li code { padding: 0.2rem 0.4rem !important; font-size: 0.9em !important; border-radius: 0.375rem !important;}
+  .prose img { margin: 2rem auto !important; border-radius: 2rem !important; box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important; }
+}
+
+/* ---------- 代码块语言标签与复制按钮（由 ArticleEnhancer 注入） ---------- */
+.prose pre {
+  position: relative !important;
+}
+.prose pre .code-lang-chip {
+  position: absolute;
+  top: 0.5rem;
+  right: 2.9rem;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  user-select: none;
+  pointer-events: none;
+}
+.prose pre .code-copy-btn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.25s ease, background-color 0.25s ease;
+}
+.prose pre:hover .code-copy-btn,
+.prose pre .code-copy-btn:focus-visible {
+  opacity: 1;
+}
+.prose pre .code-copy-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+.prose pre .code-copy-btn.copied {
+  color: #86efac;
+  opacity: 1;
+}
+
+/* 同一套光影入场：不依赖 JS 隐藏正文，减少动态效果时直接展示。 */
+@keyframes pageArrival {
+  from { opacity: 0; transform: translateY(18px); clip-path: inset(0 0 8% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(0); }
+}
+.page-arrival { animation: pageArrival 650ms cubic-bezier(.16,1,.3,1) backwards; }
+.night-intro-curtain {
+  position: absolute; inset-block: 0; width: 50%;
+  background: #080b18;
+  background-image: radial-gradient(ellipse at 100% 50%, #312e8155, transparent 65%);
+  animation: nightCurtainLeft 650ms cubic-bezier(.76,0,.24,1) 1100ms forwards;
+}
+.night-intro-left { left: 0; }
+.night-intro-right { right: 0; transform: scaleX(-1); animation-name: nightCurtainRight; }
+@keyframes nightCurtainLeft { to { transform: translateX(-100%); } }
+@keyframes nightCurtainRight { to { transform: translateX(100%) scaleX(-1); } }
+.night-intro-copy { animation: nightSignature 1450ms ease both; }
+@keyframes nightSignature {
+  0% { opacity: 0; transform: translateY(12px); filter: blur(8px); }
+  28%, 68% { opacity: 1; transform: none; filter: none; }
+  100% { opacity: 0; transform: translateY(-12px); filter: blur(4px); }
+}
+.night-intro-orbit { animation: nightOrbit 1500ms ease-out both; }
+@keyframes nightOrbit { from { transform: scale(.7) rotate(-25deg); } to { transform: scale(1.15) rotate(25deg); } }
+@keyframes photoDrift { from { transform: scale(1.04) translateX(-1%); } to { transform: scale(1.13) translateX(1%); } }
+.photo-drift { animation: photoDrift 6500ms linear both; }
+.photo-banner:hover .photo-drift, .photo-banner:focus-within .photo-drift, .photo-banner-paused .photo-drift { animation-play-state: paused; }
+@keyframes photoDevelop { from { opacity: 0; filter: brightness(1.6) saturate(.25); transform: scale(1.06); } to { opacity: 1; filter: none; transform: none; } }
+.photo-develop { animation: photoDevelop 700ms ease-out backwards; }
+@media (prefers-reduced-motion: reduce) {
+  .night-intro { display: none; }
+  .page-arrival, .photo-drift, .photo-develop { animation: none; }
+  .photo-album, .photo-reveal { transform: none !important; opacity: 1 !important; }
+}
+
+.night-intro::backdrop { background: transparent; }

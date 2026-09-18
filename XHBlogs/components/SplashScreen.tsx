@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { siteConfig } from '../siteConfig';
 
 const subscribe = () => () => {};
@@ -12,71 +11,35 @@ export default function SplashScreen() {
 }
 
 function SplashContent() {
-  const [hasSeenSplash] = useState(() => {
-    try {
-      return sessionStorage.getItem('hasSeenSplash') === 'true';
-    } catch {
-      return false;
-    }
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const [show, setShow] = useState(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    try { return sessionStorage.getItem('hasSeenSplash') !== 'true'; } catch { return true; }
   });
-  const [show, setShow] = useState(!hasSeenSplash);
 
   useEffect(() => {
-    if (hasSeenSplash) {
-      document.documentElement.classList.add('splash-seen');
+    if (!show) {
+      try { sessionStorage.setItem('hasSeenSplash', 'true'); } catch {}
       return;
     }
-    if (!show) {
-      const timer = setTimeout(() => document.documentElement.classList.add('splash-seen'), 500);
-      return () => clearTimeout(timer);
-    }
-    const timer = setTimeout(() => {
-      setShow(false);
-      try {
-        sessionStorage.setItem('hasSeenSplash', 'true');
-      } catch {}
-    }, 2200);
-    return () => clearTimeout(timer);
-  }, [hasSeenSplash, show]);
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    const timer = setTimeout(() => setShow(false), 1800);
+    return () => { clearTimeout(timer); dialog?.close(); };
+  }, [show]);
 
+  if (!show) return null;
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          key="splash-screen-container"
-          exit={{ opacity: 0, scale: 1.1, filter: "blur(20px)" }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[100000] flex flex-col items-center justify-center bg-white dark:bg-slate-950"
-        >
-          <div className="relative z-10 flex flex-col items-center">
-            {/* 头像光环 */}
-            <div className="relative w-24 h-24 mb-8">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                className="absolute -inset-1.5 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-60 blur-[3px]"
-              />
-              <div className="relative w-full h-full rounded-full p-1.5 bg-white dark:bg-slate-900 shadow-xl">
-                <img src={siteConfig.avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
-              </div>
-            </div>
-
-            <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2 tracking-[0.2em] uppercase">
-              {siteConfig.authorName}
-            </h1>
-            <p className="text-[10px] font-black text-slate-400 tracking-[0.5em] mb-12">INITIALIZING SYSTEM</p>
-
-            <div className="w-40 h-[1.5px] bg-slate-200 dark:bg-slate-800 relative">
-              <motion.div
-                initial={{ width: "0%" }}
-                animate={{ width: "100%" }}
-                transition={{ duration: 1.8, ease: "easeInOut" }}
-                className="absolute top-0 left-0 h-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.8)]"
-              />
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <dialog ref={dialogRef} onCancel={() => setShow(false)} className="night-intro fixed inset-0 m-0 h-dvh w-screen max-h-none max-w-none border-0 bg-transparent p-0 z-[100000] flex items-center justify-center text-white" aria-label="永夜入场">
+      <div className="night-intro-curtain night-intro-left" />
+      <div className="night-intro-curtain night-intro-right" />
+      <div className="night-intro-copy relative text-center" aria-hidden="true">
+        <span className="night-intro-orbit absolute -inset-16 rounded-full border border-indigo-300/20" />
+        <p className="mb-6 text-[10px] tracking-[0.5em] text-indigo-200">A LITTLE WORLD AFTER DARK</p>
+        <p className="text-5xl font-black tracking-[0.12em] sm:text-7xl">{siteConfig.authorName}</p>
+        <p className="mt-6 text-sm tracking-[0.4em] text-slate-300">光落成诗 · 夜藏片刻</p>
+      </div>
+      <button type="button" onClick={() => setShow(false)} className="absolute bottom-10 right-8 rounded-full border border-white/20 px-5 py-2 text-xs text-slate-300 hover:bg-white/10">跳过开场 ↗</button>
+    </dialog>
   );
 }

@@ -1,13 +1,26 @@
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import Navbar from '../../components/Navbar';
 import PageTransition from '../../components/PageTransition';
 import { albums, Album } from '../../data/albums';
 
 export default function PhotoWallClient() {
+  const reducedMotion = useReducedMotion();
+  const lightboxRef = useRef<HTMLDialogElement>(null);
   const [currentAlbum, setCurrentAlbum] = useState<Album | null>(null);
   const [selectedImage, setSelectedImage] = useState<{url: string, caption?: string} | null>(null);
+
+  useEffect(() => {
+    if (!selectedImage) return;
+    const dialog = lightboxRef.current;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    dialog?.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { dialog?.close(); document.body.style.overflow = overflow; previousFocus?.focus(); };
+  }, [selectedImage]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeQuery, setActiveQuery] = useState('');
@@ -57,6 +70,7 @@ export default function PhotoWallClient() {
                   </svg>
                   <input
                     type="text"
+                    aria-label="搜索相册或照片"
                     placeholder="搜索相册名或照片描述..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -75,17 +89,22 @@ export default function PhotoWallClient() {
                     </h3>
                     <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
                       {matchedPhotos.map((photo, index) => (
-                        <div
+                        <motion.button
+                          type="button"
+                          initial={reducedMotion ? false : { opacity: 0, y: 30 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, amount: 0.1 }}
+                          transition={{ duration: reducedMotion ? 0 : 0.6 }}
                           key={`search-photo-${index}`}
                           onClick={() => setSelectedImage(photo)}
-                          className="break-inside-avoid relative group rounded-2xl overflow-hidden cursor-zoom-in shadow-lg bg-white/20 dark:bg-slate-800/20 border border-white/30 dark:border-white/10 transition-transform duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20"
+                          className="photo-reveal block w-full text-left break-inside-avoid relative group rounded-2xl overflow-hidden cursor-zoom-in shadow-lg bg-white/20 dark:bg-slate-800/20 border border-white/30 dark:border-white/10 transition-transform duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20"
                         >
                           <img src={photo.url} alt={photo.caption} className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
                             <span className="text-indigo-300 font-black text-[10px] tracking-widest uppercase mb-1 drop-shadow-md">{photo.albumName}</span>
                             <p className="text-white font-medium text-sm drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-500">{photo.caption}</p>
                           </div>
-                        </div>
+                        </motion.button>
                       ))}
                     </div>
                   </div>
@@ -100,10 +119,15 @@ export default function PhotoWallClient() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-20 mt-10">
                   {matchedAlbums.map((album, index) => (
-                    <div
+                    <motion.button
+                      type="button"
+                      initial={reducedMotion ? false : { opacity: 0, y: 40, rotate: index % 2 ? 5 : -5 }}
+                      whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                      viewport={{ once: true, amount: 0.15 }}
+                      transition={{ duration: reducedMotion ? 0 : 0.8, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
                       key={album.id}
                       onClick={() => { setSearchQuery(''); setCurrentAlbum(album); }}
-                      className="group cursor-pointer flex flex-col items-center"
+                      className="photo-album group cursor-pointer flex flex-col items-center"
                     >
                       <div className="relative w-[85%] aspect-[4/3] mb-8">
                         <div className="absolute inset-0 bg-slate-300 dark:bg-slate-700 rounded-[4px] shadow-md transform rotate-6 translate-x-4 translate-y-2 group-hover:rotate-12 group-hover:translate-x-8 transition-all duration-500 border-[6px] border-white dark:border-slate-200 overflow-hidden opacity-60">
@@ -128,7 +152,7 @@ export default function PhotoWallClient() {
                         </div>
                         <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-1">{album.description}</p>
                       </div>
-                    </div>
+                    </motion.button>
                   ))}
                 </div>
 
@@ -169,11 +193,15 @@ export default function PhotoWallClient() {
 
               <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
                 {currentAlbum.photos.map((photo, index) => (
-                  <div
+                  <motion.button
+                    type="button"
+                    initial={reducedMotion ? false : { opacity: 0, y: 32, rotate: index % 2 ? 2 : -2 }}
+                    whileInView={{ opacity: 1, y: 0, rotate: 0 }}
+                    viewport={{ once: true, amount: 0.1 }}
+                    transition={{ duration: reducedMotion ? 0 : 0.7, delay: Math.min(index * 0.06, 0.3), ease: [0.16, 1, 0.3, 1] }}
                     key={`${photo.url}-${index}`}
                     onClick={() => setSelectedImage(photo)}
-                    className="break-inside-avoid relative group rounded-2xl overflow-hidden cursor-zoom-in shadow-lg bg-white/20 dark:bg-slate-800/20 border border-white/30 dark:border-white/10 transition-transform duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20 animate-fade-in-up"
-                    style={{ animationDelay: `${index * 50}ms` }}
+                    className="photo-reveal block w-full text-left break-inside-avoid relative group rounded-2xl overflow-hidden cursor-zoom-in shadow-lg bg-white/20 dark:bg-slate-800/20 border border-white/30 dark:border-white/10 transition-transform duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/20"
                   >
                     <img src={photo.url} alt={photo.caption || '照片'} className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-5">
@@ -183,7 +211,7 @@ export default function PhotoWallClient() {
                         </p>
                       )}
                     </div>
-                  </div>
+                  </motion.button>
                 ))}
               </div>
             </div>
@@ -193,18 +221,21 @@ export default function PhotoWallClient() {
       </PageTransition>
 
       {selectedImage && (
-        <div
-          className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 sm:p-10 cursor-zoom-out animate-fade-in"
+        <dialog
+          ref={lightboxRef}
+          aria-label="全屏照片预览"
+          onCancel={() => setSelectedImage(null)}
+          className="fixed inset-0 m-0 h-dvh w-screen max-h-none max-w-none border-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 sm:p-10 cursor-zoom-out animate-fade-in"
           onClick={() => setSelectedImage(null)}
         >
-          <button className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2">
+          <button type="button" aria-label="关闭照片预览" onClick={() => setSelectedImage(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2">
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
 
           <img
             src={selectedImage.url}
             alt={selectedImage.caption || '全屏照片'}
-            className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+            className="photo-develop max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
 
@@ -213,7 +244,7 @@ export default function PhotoWallClient() {
               {selectedImage.caption}
             </div>
           )}
-        </div>
+        </dialog>
       )}
 
       <style jsx global>{`

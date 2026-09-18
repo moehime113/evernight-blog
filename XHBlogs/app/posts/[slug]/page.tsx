@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 import Link from 'next/link';
+import type { Metadata } from 'next';
 
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
@@ -24,9 +25,12 @@ import ClientTOC from '../../../components/ClientTOC';
 import BackButton from '../../../components/BackButton';
 import Comments from '../../../components/Comments';
 import SidebarLyric from '../../../components/SidebarLyric';
+import ReadingProgress from '../../../components/ReadingProgress';
+import ArticleEnhancer from '../../../components/ArticleEnhancer';
+
+const postsDirectory = path.join(process.cwd(), 'posts');
 
 export async function generateStaticParams() {
-  const postsDirectory = path.join(process.cwd(), 'posts');
   if (!fs.existsSync(postsDirectory)) return [];
 
   const filenames = fs.readdirSync(postsDirectory);
@@ -36,6 +40,29 @@ export async function generateStaticParams() {
     .map((name) => ({
       slug: name.replace(/\.md$/, ''),
     }));
+}
+
+// 站内文章的轻量索引：读 frontmatter，不做 Markdown 渲染
+function readAllPosts() {
+  if (!fs.existsSync(postsDirectory)) return [];
+  return fs.readdirSync(postsDirectory)
+    .filter(f => f.endsWith('.md'))
+    .map(f => {
+      const { data } = matter(fs.readFileSync(path.join(postsDirectory, f), 'utf8'));
+      return {
+        slug: f.replace(/\.md$/, ''),
+        title: data.title || '无标题',
+        description: data.description || '',
+        date: data.date || '',
+        tags: Array.isArray(data.tags) ? data.tags : [],
+        cover: data.cover || siteConfig.defaultPostCover,
+      };
+    })
+    .sort((a, b) => {
+      const diff = new Date(b.date).getTime() - new Date(a.date).getTime();
+      if (diff !== 0) return diff;
+      return b.slug.localeCompare(a.slug);
+    });
 }
 
 function extractToc(content: string) {
@@ -52,8 +79,23 @@ function extractToc(content: string) {
   return toc;
 }
 
+// 中英混排字数与预计阅读时长：跳过代码块与链接地址，只数正文
+function estimateReading(content: string) {
+  const plain = content
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/<[^>]+>/g, ' ');
+  const cjk = (plain.match(/[\u4e00-\u9fa5\u3040-\u30ff]/g) || []).length;
+  const latinWords = (plain.match(/[a-zA-Z]+/g) || []).length;
+  const wordCount = cjk + latinWords;
+  const minutes = Math.max(1, Math.round((cjk + latinWords * 1.8) / 400));
+  return { wordCount, minutes };
+}
+
 async function getPostData(slug: string) {
-  const fullPath = path.join(process.cwd(), 'posts', `${slug}.md`);
+  const fullPath = path.join(postsDirectory, `${slug}.md`);
   const fileContents = fs.readFileSync(fullPath, 'utf8');
   const parsed = matter(fileContents);
   const { data } = parsed;
@@ -109,30 +151,55 @@ async function getPostData(slug: string) {
     title: data.title,
     date: data.date,
     tags: data.tags && Array.isArray(data.tags) ? data.tags : [],
-    cover: data.cover || siteConfig.defaultPostCover
+    cover: data.cover || siteConfig.defaultPostCover,
+    description: data.description || '',
+    reading: estimateReading(content),
   };
 }
 
-function getRecentPosts(currentSlug: string) {
-  const postsDirectory = path.join(process.cwd(), 'posts');
-  let fileNames: string[] = [];
-  try { fileNames = fs.readdirSync(postsDirectory).filter(f => f.endsWith('.md')); } catch(e) {}
-  if (!fileNames) return [];
-  return fileNames.map(f => {
-    const s = f.replace(/\.md$/, '');
-    const c = fs.readFileSync(path.join(postsDirectory, f), 'utf8');
-    const { data } = matter(c);
-    return { slug: s, title: data.title || '无标题', date: data.date };
-  }).filter(p => p.slug !== currentSlug).slice(0, 3);
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const post = readAllPosts().find(p => p.slug === resolvedParams.slug);
+  if (!post) return {};
+
+  return {
+    title: post.title,
+    description: post.description || siteConfig.bio,
+    alternates: { canonical: `/posts/${post.slug}` },
+    openGraph: {
+      title: post.title,
+      description: post.description || siteConfig.bio,
+      url: `/posts/${post.slug}`,
+      type: 'article',
+      publishedTime: post.date,
+      tags: post.tags,
+      images: [{ url: post.cover }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description || siteConfig.bio,
+      images: [post.cover],
+    },
+  };
 }
 
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   const postData = await getPostData(resolvedParams.slug);
-  const recentPosts = getRecentPosts(resolvedParams.slug);
+
+  // 上下篇导航：列表已按时间倒序，prev 是更早一篇，next 是更新一篇
+  const sortedPosts = readAllPosts();
+  const currentIndex = sortedPosts.findIndex(p => p.slug === resolvedParams.slug);
+  const newerPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null;
+  const olderPost = currentIndex >= 0 && currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null;
+
+  // 侧栏推荐：排除当前文章后取最新的 3 篇
+  const recentPosts = sortedPosts.filter(p => p.slug !== resolvedParams.slug).slice(0, 3);
 
   return (
     <div className="min-h-screen relative pb-20">
+      <ReadingProgress />
       <Navbar />
       <PageTransition>
         <main className="w-[95%] md:w-[90%] max-w-6xl mx-auto mt-24 md:mt-28 flex flex-col lg:flex-row gap-6 md:gap-8 relative z-10">
@@ -158,6 +225,11 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                     写作时间：{postData.date}
                   </div>
 
+                  <div className="flex items-center gap-1.5 md:gap-2 text-purple-700 dark:text-purple-400 font-bold bg-white/30 dark:bg-slate-900/50 px-3 md:px-4 py-1.5 md:py-2 rounded-full w-max text-xs md:text-sm transition-colors duration-700 shadow-sm border border-white/20 dark:border-white/5">
+                    <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                    约 {postData.reading.minutes} 分钟 · {postData.reading.wordCount} 字
+                  </div>
+
                   {postData.tags.map((tag: string) => (
                     <div key={tag} className="flex items-center gap-1 text-pink-600 dark:text-pink-400 font-bold bg-white/30 dark:bg-slate-900/50 px-2.5 md:px-3 py-1.5 md:py-2 rounded-full text-xs md:text-sm transition-colors duration-700 shadow-sm border border-white/20 dark:border-white/5">
                       <span className="text-[10px] md:text-xs opacity-70">#</span> {tag}
@@ -167,94 +239,6 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
               </header>
 
               <div className="relative">
-                <style>{`
-                  .prose h1 { font-size: 1.8rem !important; font-weight: 900 !important; margin-bottom: 1.2rem !important; margin-top: 2rem !important; line-height: 1.3 !important; color: inherit !important; }
-                  .prose h2 { font-size: 1.5rem !important; font-weight: 800 !important; margin-bottom: 1rem !important; margin-top: 1.5rem !important; color: inherit !important; }
-                  .prose h3 { font-size: 1.2rem !important; font-weight: 700 !important; margin-bottom: 0.8rem !important; color: inherit !important; }
-                  .prose p { font-size: 0.95rem !important; line-height: 1.75 !important; color: inherit !important; }
-                  
-                  .prose a { color: #6366f1 !important; text-decoration: none !important; font-weight: 600 !important; border-bottom: 1px dashed #6366f1 !important; transition: all 0.3s ease !important; }
-                  .prose a:hover { color: #4f46e5 !important; border-bottom-style: solid !important; background-color: rgba(99, 102, 241, 0.1) !important; padding: 0 0.2rem !important; border-radius: 0.2rem !important; }
-                  .dark .prose a { color: #818cf8 !important; border-bottom-color: #818cf8 !important; }
-                  .dark .prose a:hover { color: #a5b4fc !important; background-color: rgba(129, 140, 248, 0.15) !important; }
-
-                  .prose ul { list-style-type: disc !important; padding-left: 1.5rem !important; font-size: 0.95rem !important; }
-                  .prose ol { list-style-type: decimal !important; padding-left: 1.5rem !important; font-size: 0.95rem !important; }
-                  .prose li { display: list-item !important; margin-bottom: 0.5rem !important; }
-                  
-                  .prose ul ul, .prose ol ul { list-style-type: circle !important; margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
-                  .prose ol ol, .prose ul ol { list-style-type: lower-alpha !important; margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
-                  
-                  .prose del { text-decoration-color: inherit !important; opacity: 0.6; }
-                  
-                  /* 🌟 引用块专属果冻极客风样式补丁 */
-                  .prose blockquote {
-                    border-left: 4px solid #6366f1 !important;
-                    background-color: rgba(99, 102, 241, 0.05) !important;
-                    padding: 1rem 1.5rem !important;
-                    margin: 1.5rem 0 !important;
-                    border-radius: 0 1.25rem 1.25rem 0 !important;
-                    font-style: italic !important;
-                    color: #64748b !important;
-                  }
-                  .prose blockquote p {
-                    margin: 0 !important; 
-                    color: inherit !important;
-                  }
-                  .dark .prose blockquote {
-                    border-left-color: #818cf8 !important;
-                    background-color: rgba(129, 140, 248, 0.1) !important;
-                    color: #94a3b8 !important;
-                  }
-                  
-                  .prose pre {
-                    background-color: #282c34 !important; color: #abb2bf !important;
-                    padding: 1rem !important; border-radius: 0.75rem !important;
-                    overflow-x: auto !important; box-shadow: inset 0 0 10px rgba(0,0,0,0.3) !important;
-                    margin-top: 1rem !important; margin-bottom: 1rem !important;
-                  }
-                  
-                  .prose pre code, .prose p code, .prose li code { 
-                    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, ui-monospace, monospace !important; 
-                    font-variant-ligatures: contextual !important; 
-                  }
-                  .prose pre code { 
-                    background-color: transparent !important; 
-                    padding: 0 !important; 
-                    color: inherit !important; 
-                    font-size: 0.85em !important; 
-                  }
-                  
-                  .prose code::before, .prose code::after { content: none !important; }
-                  .prose p code, .prose li code { background-color: rgba(99, 102, 241, 0.1) !important; color: #6366f1 !important; padding: 0.1rem 0.3rem !important; border-radius: 0.25rem !important; font-weight: 600 !important; font-size: 0.85em !important; }
-                  .dark .prose p code, .dark .prose li code { background-color: rgba(99, 102, 241, 0.2) !important; color: #818cf8 !important; }
-                  .prose img { display: block !important; margin: 1.5rem auto !important; border-radius: 1rem !important; box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important; max-width: 100% !important; height: auto !important; }
-
-                  .prose pre code .hljs-comment, .prose pre code .hljs-quote { color: #5c6370 !important; font-style: italic !important; }
-                  .prose pre code .hljs-doctag, .prose pre code .hljs-keyword, .prose pre code .hljs-formula { color: #c678dd !important; }
-                  .prose pre code .hljs-keyword.type_, .prose pre code .hljs-type { color: #c678dd !important; } 
-                  .prose pre code .hljs-section, .prose pre code .hljs-name, .prose pre code .hljs-selector-tag, .prose pre code .hljs-deletion, .prose pre code .hljs-subst { color: #e06c75 !important; }
-                  .prose pre code .hljs-literal { color: #56b6c2 !important; }
-                  .prose pre code .hljs-string, .prose pre code .hljs-regexp, .prose pre code .hljs-addition, .prose pre code .hljs-attribute, .prose pre code .hljs-meta-string { color: #98c379 !important; }
-                  .prose pre code .hljs-built_in, .prose pre code .hljs-class .hljs-title, .prose pre code .hljs-title.class_ { color: #e6c07b !important; } 
-                  .prose pre code .hljs-attr, .prose pre code .hljs-variable, .prose pre code .hljs-template-variable, .prose pre code .hljs-selector-class, .prose pre code .hljs-selector-attr, .prose pre code .hljs-selector-pseudo, .prose pre code .hljs-number { color: #d19a66 !important; }
-                  .prose pre code .hljs-symbol, .prose pre code .hljs-bullet, .prose pre code .hljs-link, .prose pre code .hljs-meta, .prose pre code .hljs-selector-id, .prose pre code .hljs-title, .prose pre code .hljs-title.function_ { color: #61aeee !important; } 
-
-                  @media (min-width: 768px) {
-                    .prose h1 { font-size: 3rem !important; font-weight: 950 !important; margin-bottom: 2rem !important; margin-top: 3rem !important; line-height: 1.1 !important; }
-                    .prose h2 { font-size: 2.2rem !important; margin-bottom: 1.5rem !important; margin-top: 2rem !important; }
-                    .prose h3 { font-size: 1.5rem !important; margin-bottom: 1rem !important; }
-                    .prose p { font-size: 1.15rem !important; line-height: 1.85 !important; }
-                    
-                    .prose ul, .prose ol { padding-left: 2rem !important; font-size: 1.1rem !important; }
-                    
-                    .prose pre { padding: 1.25rem !important; margin-top: 1.5rem !important; margin-bottom: 1.5rem !important; }
-                    .prose pre code { font-size: 0.9em !important; }
-                    .prose p code, .prose li code { padding: 0.2rem 0.4rem !important; font-size: 0.9em !important; border-radius: 0.375rem !important;}
-                    .prose img { margin: 2rem auto !important; border-radius: 2rem !important; box-shadow: 0 20px 50px rgba(0,0,0,0.15) !important; }
-                  }
-                `}</style>
-
                 <div
                   id="article-content"
                   className="prose prose-slate dark:prose-invert prose-base md:prose-lg max-w-none text-slate-800 dark:text-slate-200 transition-colors duration-700 scroll-smooth"
@@ -262,7 +246,29 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
                 />
               </div>
 
-              <div className="mt-12 md:mt-16">
+              {/* 上一篇 / 下一篇 */}
+              <nav className="mt-10 md:mt-14 pt-6 border-t border-slate-300/50 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-3" aria-label="文章导航">
+                {olderPost ? (
+                  <Link href={`/posts/${olderPost.slug}`} className="group flex flex-col gap-1 rounded-2xl border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md px-4 py-3.5 hover:border-indigo-400/60 hover:shadow-lg transition-all duration-300">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                      上一篇
+                    </span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{olderPost.title}</span>
+                  </Link>
+                ) : <span className="hidden sm:block" aria-hidden="true" />}
+                {newerPost && (
+                  <Link href={`/posts/${newerPost.slug}`} className="group flex flex-col gap-1 rounded-2xl border border-white/40 dark:border-white/10 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md px-4 py-3.5 text-right hover:border-indigo-400/60 hover:shadow-lg transition-all duration-300">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-1 justify-end">
+                      下一篇
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+                    </span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">{newerPost.title}</span>
+                  </Link>
+                )}
+              </nav>
+
+              <div className="mt-8 md:mt-12">
                 <Comments />
               </div>
 
@@ -298,6 +304,8 @@ export default async function Post({ params }: { params: Promise<{ slug: string 
             )}
           </aside>
         </main>
+
+        <ArticleEnhancer />
       </PageTransition>
     </div>
   );

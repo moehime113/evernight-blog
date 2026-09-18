@@ -7,7 +7,7 @@ import MomentList, { type Moment } from './MomentList';
 import { siteConfig } from '../../siteConfig';
 
 export const metadata = {
-  title: "说说 | " + siteConfig.title,
+  title: "说说",
   description: "生活动态与瞬间记录",
 };
 
