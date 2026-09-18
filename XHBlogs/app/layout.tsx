@@ -1,4 +1,3 @@
-import 'katex/dist/katex.min.css';
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
@@ -20,7 +19,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 const notoSerif = Noto_Serif_SC({
   subsets: ["latin"],
-  weight: ["400", "700", "900"],
+  weight: ["400"],
   variable: "--font-serif",
   display: 'swap',
 });

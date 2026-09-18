@@ -61,9 +61,13 @@ export function parseEvents(xml: string, limit = 12): GithubEvent[] {
 
 export async function fetchGithubActivity(login: string): Promise<GithubActivity> {
   if (!login) return { contributions: {}, total: 0, events: [] };
-  // 8s 超时：GitHub 慢或不通时回落到空状态，别把构建/首屏拖到 60s+
-  const options: RequestInit & { next: { revalidate: number } } = { next: { revalidate: REVALIDATE }, signal: AbortSignal.timeout(8000) };
-  const grab = (url: string) => fetch(url, options).then(r => (r.ok ? r.text() : '')).catch(() => '');
+  // 5s 硬超时：GitHub 慢/不通时回落到空状态，别把构建或首屏拖住
+  // （AbortSignal.timeout 实测没掐断慢连接，所以用 Promise.race 强制到点返回）
+  const options: RequestInit & { next: { revalidate: number } } = { next: { revalidate: REVALIDATE } };
+  const grab = (url: string) => Promise.race([
+    fetch(url, options).then(r => (r.ok ? r.text() : '')).catch(() => ''),
+    new Promise<string>(resolve => setTimeout(() => resolve(''), 5000)),
+  ]);
 
   const [calendar, feed] = await Promise.all([
     grab(`https://github.com/users/${login}/contributions`),

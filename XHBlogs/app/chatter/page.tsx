@@ -37,7 +37,17 @@ export default function ChatterPage() {
         tags: data.tags || [],
         mood: data.mood || '',
         cover: data.cover || '',
-        content: content.replace(/^#+ .*\n/m, '') // 去除开头的 markdown 标题以优化截取显示
+        // 列表页只做摘要：剥掉 markdown 语法，避免卡片上出现 ** 和 >
+        content: content
+          .replace(/^#+ .*\n/m, '')
+          .replace(/```[\s\S]*?```/g, ' ')
+          .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+          .replace(/^>\s?/gm, '')
+          .replace(/^[-*+]\s+/gm, '')
+          .replace(/\*\*|__|\*|`/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
       };
     }).sort((a, b) => (new Date(b.date).getTime() - new Date(a.date).getTime())); // 按时间倒序
   } catch (e) {

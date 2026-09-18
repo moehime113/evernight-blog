@@ -64,8 +64,9 @@ export async function GET(request: NextRequest) {
           name: song.name,
           artist: artistName,
           author: artistName,
-          cover: song.album?.picUrl || '',
-          pic: song.album?.picUrl || '',
+          // 网易云图床支持 ?param=WxH，播放器只显示小图，别拉 1000x1000 的原图
+          cover: song.album?.picUrl ? `${song.album.picUrl}?param=200y200` : '',
+          pic: song.album?.picUrl ? `${song.album.picUrl}?param=200y200` : '',
           url: `https://music.163.com/song/media/outer/url?id=${songId}.mp3`,
           lrc: lrcText,
         }
@@ -76,5 +77,8 @@ export async function GET(request: NextRequest) {
     }),
   )
 
-  return NextResponse.json(results)
+  // 歌单不常变，交给 CDN 缓存，重复访问不再打网易云
+  return NextResponse.json(results, {
+    headers: { 'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400' },
+  })
 }
