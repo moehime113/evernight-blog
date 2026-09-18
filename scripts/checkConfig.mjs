@@ -23,8 +23,6 @@ const commonConfigs = [
   { key: 'cloudMusicIds', snippet: `\n  cloudMusicIds: [],` },
   { key: 'social', snippet: `\n  social: {\n    github: "https://github.com/moehime113",\n    gitee: "",\n    google: "",\n    email: "",\n    qq: "",\n    wechat: "",\n  },` },
   { key: 'counts', snippet: `\n  counts: {\n    photos: 0,\n  },` },
-  { key: 'chatterTitle', snippet: `\n  chatterTitle: "云端杂谈",` },
-  { key: 'chatterDescription', snippet: `\n  chatterDescription: "随想与片刻记录",` },
   { key: 'danmakuList', snippet: `\n  danmakuList: ["欢迎来访", "记录此刻", "慢慢整理"],` },
   { key: 'gitalkConfig', snippet: `\n  gitalkConfig: {\n    clientID: "",\n    clientSecret: "",\n    repo: "",\n    owner: "",\n    admin: [""],\n  },` },
   { key: 'buildDate', snippet: `\n  buildDate: "",` },

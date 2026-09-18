@@ -24,8 +24,6 @@ export const siteConfig = {
   counts: {
     photos: 0,
   },
-  chatterTitle: "云端杂谈",
-  chatterDescription: "随想与片刻记录",
   picBedName: "图床",
   picBedUrl: "",
   picBedToken: "",

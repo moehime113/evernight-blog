@@ -22,7 +22,6 @@ export function allowedThreads(root = process.cwd()) {
   }
   for (const [directory, prefix] of [
     [path.join(root, 'posts'), '/posts'],
-    [path.join(root, 'chatters'), '/chatter'],
     [path.join(root, 'moments'), '/moments'],
     [path.join(root, 'posts', 'moments'), '/moments'],
   ]) {

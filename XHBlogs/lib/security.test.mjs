@@ -113,10 +113,10 @@ test('auth exposes only public profile, encrypts cookie and rejects tampering/be
 test('whitelist accepts static boards without app sources and actual markdown, separates long IDs', () => {
   const directory = mkdtempSync(join(tmpdir(), 'xh-comments-'));
   try {
-    for (const folder of ['posts/moments', 'chatters', 'moments']) mkdirSync(join(directory, folder), { recursive: true });
-    for (const file of ['posts/hello.md', 'chatters/note.md', 'moments/one.md', 'posts/moments/two.md']) writeFileSync(join(directory, file), '');
+    for (const folder of ['posts/moments', 'moments']) mkdirSync(join(directory, folder), { recursive: true });
+    for (const file of ['posts/hello.md', 'moments/one.md', 'posts/moments/two.md']) writeFileSync(join(directory, file), '');
     const threads = allowedThreads(directory);
-    for (const thread of ['/about', '/posts/hello', '/chatter/note', '/moments/one', '/moments/two', 'workshop-2026-09']) assert.equal(validateThread(thread, threads), thread);
+    for (const thread of ['/about', '/posts/hello', '/moments/one', '/moments/two', 'workshop-2026-09']) assert.equal(validateThread(thread, threads), thread);
     for (const thread of ['/posts/[slug]', '/posts/missing', '../about', 'https://evil.example', 'workshop-2026-13']) assert.throws(() => validateThread(thread, threads));
     assert.equal(validateThread('/about/', threads), '/about');
     const a = threadLabels(`/posts/${'a'.repeat(70)}`);
