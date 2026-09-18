@@ -12,6 +12,7 @@ import SplashScreen from "../components/SplashScreen";
 import DanmakuBackground from '../components/DanmakuBackground';
 
 import MobileBackButton from '../components/MobileBackButton';
+import SiteFooter from '../components/SiteFooter';
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -97,9 +98,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
               <div className="relative z-10 flex-1 flex flex-col">
                 {children}
-                <footer className="px-6 py-6 text-center text-xs text-slate-600 dark:text-slate-300">
-                  © 2026 Evernight · evernight.fun
-                </footer>
+                <SiteFooter />
               </div>
 
               <div className="hidden md:block">

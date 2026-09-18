@@ -22,28 +22,20 @@ import { siteConfig } from '../../siteConfig';
 
 // 🌟 引入刚刚写好的前端交互引擎
 import AboutClient from '../../components/AboutClient';
+import { albums } from '../../data/albums';
 
-// 🌟 读取指定目录下的 markdown 文件，并提取属性
-function getDirActivities(dirName: string, typeLabel: '文章' | '杂谈' | '说说', linkPrefix: string) {
-  const dirPath = path.join(process.cwd(), dirName);
-  if (!fs.existsSync(dirPath)) return [];
-
-  const files = fs.readdirSync(dirPath).filter(f => f.endsWith('.md'));
-
-  return files.map(file => {
-    const content = fs.readFileSync(path.join(dirPath, file), 'utf8');
-    const { data } = matter(content);
-    return {
-      id: `${dirName}-${file}`,
-      type: typeLabel,
-      title: data.title || file.replace('.md', ''),
-      // 保留完整 ISO 时间供前端处理
-      date: data.date ? new Date(data.date).toISOString() : '1970-01-01T00:00:00Z',
-      url: `/${linkPrefix}/${file.replace('.md', '')}`
-    };
-  });
+// 只数目录里的 .md，用来给关于页做数字徽章
+function countMarkdown(...dirs: string[]) {
+  const ids = new Set<string>();
+  for (const dir of dirs) {
+    const full = path.join(process.cwd(), dir);
+    if (!fs.existsSync(full)) continue;
+    for (const file of fs.readdirSync(full)) if (file.endsWith('.md')) ids.add(file);
+  }
+  return ids.size;
 }
 
+// 🌟 读取指定目录下的 markdown 文件，并提取属性
 export default async function AdminAboutPage() {
   const fullPath = path.join(process.cwd(), 'app', 'about', 'about.md');
   let contentHtml = "博主很懒，还没有写自我介绍哦...";
@@ -98,15 +90,12 @@ export default async function AdminAboutPage() {
     console.error("读取 about.md 失败", e);
   }
 
-  // 🌟 3. 获取所有的活动动态
-  const posts = getDirActivities('posts', '文章', 'posts');
-  const chatters = getDirActivities('chatters', '杂谈', 'chatter');
-  const moments = getDirActivities('moments', '说说', 'moments');
-
-  // 将所有动态合并，并按时间倒序排列 (最新的在最上面)
-  const allActivities = [...posts, ...chatters, ...moments].sort((a, b) => {
-    return new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
+  const stats = [
+    { label: '文章', value: countMarkdown('posts') },
+    { label: '说说', value: countMarkdown('moments', 'posts/moments') },
+    { label: '照片', value: albums.reduce((total, album) => total + album.photos.length, 0) },
+    { label: '相册', value: albums.length },
+  ];
 
   return (
     <div className="min-h-screen relative pb-20">
@@ -247,7 +236,7 @@ export default async function AdminAboutPage() {
             <AboutClient
               contentHtml={contentHtml}
               coverImage={coverImage}
-              activities={allActivities}
+              stats={stats}
             />
           </Suspense>
 

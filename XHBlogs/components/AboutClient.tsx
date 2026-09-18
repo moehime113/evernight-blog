@@ -3,7 +3,7 @@
 import Comments from './Comments';
 import { siteConfig } from '../siteConfig';
 
-export default function AboutClient({ contentHtml, coverImage }: { contentHtml: string, coverImage: string }) {
+export default function AboutClient({ contentHtml, coverImage, stats }: { contentHtml: string, coverImage: string, stats: { label: string, value: number }[] }) {
 
   return (
     <div className="bg-white/60 dark:bg-slate-800/50 backdrop-blur-xl rounded-[40px] shadow-2xl border border-white/40 dark:border-white/10 overflow-hidden transition-colors duration-700 relative">
@@ -18,9 +18,27 @@ export default function AboutClient({ contentHtml, coverImage }: { contentHtml: 
           <img src={siteConfig.avatarUrl} alt="avatar" className="w-full h-full object-cover" />
         </div>
 
-        <div className="mt-4 md:mt-6 mb-6 md:mb-8 text-center md:text-left">
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-1 md:mb-3 transition-colors duration-700">关于我</h1>
-          <p className="text-sm md:text-lg text-indigo-600 dark:text-indigo-400 font-bold tracking-widest uppercase transition-colors duration-700">Hello World, I&apos;m {siteConfig.authorName}</p>
+        <div className="mt-4 md:mt-6 mb-6 md:mb-8 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div className="text-center md:text-left">
+            <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-1 md:mb-2 transition-colors duration-700">{siteConfig.authorName}</h1>
+            <p className="text-[11px] md:text-xs text-slate-500 dark:text-slate-400 font-bold tracking-[0.25em] uppercase transition-colors duration-700">
+              自 {new Date(siteConfig.buildDate).getFullYear() || 2026} 年起记录
+            </p>
+          </div>
+
+          <div className="flex flex-wrap justify-center md:justify-end gap-2">
+            {stats.map(item => (
+              <span key={item.label} className="px-3 py-1.5 rounded-xl bg-white/50 dark:bg-slate-900/50 border border-white/40 dark:border-white/5 shadow-sm text-[11px] font-black text-slate-500 dark:text-slate-400">
+                <span className="text-indigo-600 dark:text-indigo-400 text-sm">{item.value}</span> {item.label}
+              </span>
+            ))}
+            {siteConfig.social?.github && (
+              <a href={siteConfig.social.github} target="_blank" rel="noopener noreferrer"
+                className="px-3 py-1.5 rounded-xl bg-indigo-500 text-white text-[11px] font-black shadow-md shadow-indigo-500/30 hover:bg-indigo-600 transition-colors">
+                GitHub
+              </a>
+            )}
+          </div>
         </div>
 
         <div className="w-full h-px bg-slate-300/50 dark:bg-slate-700 mb-6 md:mb-8"></div>

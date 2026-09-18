@@ -4,15 +4,12 @@ import React, { useState, KeyboardEvent } from 'react';
 import { ImageIcon, Tag, FileText, X, Clock, CloudUpload, Smile, Save, Send } from 'lucide-react';
 
 interface Props {
-  type: 'post' | 'chatter' | 'about';
+  type: 'post' | 'about';
   tags: string[]; setTags: React.Dispatch<React.SetStateAction<string[]>>;
   cover: string; setCover: (val: string) => void;
   summary: string; setSummary: (val: string) => void;
-  mood?: string; setMood?: (val: string) => void;
   allHistoryPostTags: string[];
-  allHistoryChatterTags: string[];
   isLoadingTags: boolean;
-  allHistoryMoods: string[];
   onSave: (isPublish: boolean) => void;
   isSaving: boolean;
   lastSaved: string | null;
@@ -20,11 +17,11 @@ interface Props {
 }
 
 export default function MetaMatrix({
-  type, tags, setTags, cover, setCover, summary, setSummary, mood, setMood,
-  allHistoryPostTags, allHistoryChatterTags, isLoadingTags, allHistoryMoods, onSave, isSaving, lastSaved, onOpenImageTool
+  type, tags, setTags, cover, setCover, summary, setSummary,
+  allHistoryPostTags, isLoadingTags, onSave, isSaving, lastSaved, onOpenImageTool
 }: Props) {
   const [tagInput, setTagInput] = useState('');
-  const currentHistoryTags = type === 'chatter' ? allHistoryChatterTags : allHistoryPostTags;
+  const currentHistoryTags = allHistoryPostTags;
 
   const handleAddTag = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && tagInput.trim() !== '') {
@@ -108,27 +105,6 @@ export default function MetaMatrix({
               ) : (
                 <span className="text-[10px] text-slate-500 italic">尚未发现标签</span>
               )}
-            </div>
-          </div>
-        )}
-
-        {/* 3. 心情区 */}
-        {type === 'chatter' && setMood && (
-          <div className="flex flex-col animate-in fade-in slide-in-from-bottom duration-700">
-            <Label icon={Smile} text="Mood Today" color="border-yellow-500" />
-            <input
-              type="text" value={mood} onChange={(e) => setMood(e.target.value)} placeholder="输入心情词..."
-              className="w-full bg-white/10 dark:bg-black/20 rounded-2xl px-5 py-4 text-xs text-slate-800 dark:text-slate-200 border border-white/10 outline-none focus:ring-2 focus:ring-yellow-500 mb-4 shadow-inner"
-            />
-            <div className="flex flex-wrap gap-2">
-              {allHistoryMoods.map(h => (
-                <button
-                  key={h} onClick={() => setMood(h)}
-                  className="px-4 py-1.5 bg-yellow-500/10 rounded-full text-[10px] font-bold text-yellow-600 dark:text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500 hover:text-white transition-all shadow-sm"
-                >
-                  {h}
-                </button>
-              ))}
             </div>
           </div>
         )}

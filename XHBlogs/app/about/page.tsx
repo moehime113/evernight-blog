@@ -18,6 +18,18 @@ import 'katex/dist/katex.min.css';
 import Navbar from '../../components/Navbar';
 import PageTransition from '../../components/PageTransition';
 import AboutClient from '../../components/AboutClient';
+import { albums } from '../../data/albums';
+
+// 只数目录里的 .md，用来给关于页做数字徽章
+function countMarkdown(...dirs: string[]) {
+  const ids = new Set<string>();
+  for (const dir of dirs) {
+    const full = path.join(process.cwd(), dir);
+    if (!fs.existsSync(full)) continue;
+    for (const file of fs.readdirSync(full)) if (file.endsWith('.md')) ids.add(file);
+  }
+  return ids.size;
+}
 import { Suspense } from 'react';
 
 export default async function AboutPage() {
@@ -72,6 +84,13 @@ export default async function AboutPage() {
   } catch (e) {
     console.error("读取 about.md 失败", e);
   }
+
+  const stats = [
+    { label: '文章', value: countMarkdown('posts') },
+    { label: '说说', value: countMarkdown('moments', 'posts/moments') },
+    { label: '照片', value: albums.reduce((total, album) => total + album.photos.length, 0) },
+    { label: '相册', value: albums.length },
+  ];
 
   return (
     <div className="min-h-screen relative pb-20">
@@ -195,6 +214,7 @@ export default async function AboutPage() {
             <AboutClient
               contentHtml={contentHtml}
               coverImage={coverImage}
+              stats={stats}
             />
           </Suspense>
         </main>
